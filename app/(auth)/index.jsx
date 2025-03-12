@@ -24,7 +24,7 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const formRef = useRef<any>(null);
+    const formRef = useRef(null);
 
     const handleLogin = async () => {
         if (!email || !password) {
