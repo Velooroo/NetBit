@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
   contactContainer: {
     flex: 1,
   },
-  infoGrid: {
+  buttonGrid: {
     flexWrap: "wrap",
     flexDirection: "row",
   },
@@ -37,10 +37,16 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
-  infoTitle: {
-    flex: 1,
+  buttonView: {
+    borderRadius: 10,
+    paddingVertical: 5,
+    opacity: 0.5,
+  },
+  buttonTitle: {
     fontSize: 20,
     fontWeight: "200",
+    textAlign: "center",
+    opacity: 1,
   },
   contactItem: {
     flexDirection: "row",
@@ -88,5 +94,19 @@ export const styles = StyleSheet.create({
   contactStatus: {
     fontSize: 14,
     color: "#666",
+  },
+  // Tab styles
+  tabIndicator: {
+    position: "absolute",
+    alignSelf: "center",
+    opacity: 0.6,
+    borderRadius: 10,
+    height: 30,
+    weight: 50,
+    backgroundColor: "yellow",
+  },
+  activeTabTitle: {
+    fontWeight: "bold",
+    color: "#000",
   },
 });
