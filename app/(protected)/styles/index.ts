@@ -3,33 +3,32 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "transparent",
     paddingBottom: 80,
     alignItems: "center",
+  },
+  chatContainer: {
+    flex: 1,
+    backgroundColor: "transparent",
+    borderRadius: 24,
+    elevation: 3,
+    alignSelf: "center",
+  },
+  headerContainer: {
+    backgroundColor: '#FFE3CF',
+  },
+  contactContainer: {
+    flex: 1,
+    backgroundColor: 'white',
   },
   scrollContent: {
     paddingBottom: 24,
     flexGrow: 1, // Для правильной работы ScrollView
-    justifyContent: "center", // Вертикальное центрирование
-  },
-  chatContainer: {
-    flex: 1,
-    backgroundColor: "white",
-    borderRadius: 24,
-    marginBottom: -24,
-    paddingTop: -24,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    alignSelf: "center",
-  },
-  contactContainer: {
-    flex: 1,
+    justifyContent: "center",
   },
   buttonGrid: {
     flexWrap: "wrap",
+    width: "auto",
     flexDirection: "row",
   },
   sectionTitle: {
@@ -40,21 +39,26 @@ export const styles = StyleSheet.create({
   buttonView: {
     borderRadius: 10,
     paddingVertical: 5,
-    opacity: 0.5,
   },
   buttonTitle: {
     fontSize: 20,
-    fontWeight: "200",
     textAlign: "center",
-    opacity: 1,
+    color: '#333333',
   },
   contactItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 24,
+  },
+  lineItem: {
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#ccc",
+  },
+  lineItemPin: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#9E6E4C",
+    opacity: 0.5
   },
   lastItem: {
     borderBottomWidth: 0,
@@ -99,11 +103,10 @@ export const styles = StyleSheet.create({
   tabIndicator: {
     position: "absolute",
     alignSelf: "center",
-    opacity: 0.6,
-    borderRadius: 10,
+    opacity: 1,
+    borderRadius: 8,
     height: 30,
-    weight: 50,
-    backgroundColor: "yellow",
+    backgroundColor: "#FFFDED",
   },
   activeTabTitle: {
     fontWeight: "bold",

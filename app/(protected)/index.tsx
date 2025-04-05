@@ -7,11 +7,20 @@ import {
   TouchableOpacity,
   Animated,
 } from "react-native";
+
 import { useDimensions } from "@/hooks/useDimensions";
 import { styles } from "@/app/(protected)/styles/index";
+
 import { BUTTONS_OPTIONS, BUTTONS_ORDER } from "@/constants/contacts/button";
 import { TABS_OPTIONS, TABS_ORDER } from "@/constants/contacts/tabs";
-import { getValidatedContacts, logContactPress } from "@/utils/contacts";
+
+import {
+  // Functions
+  getValidatedContacts,
+  logContactPress,
+  // Types
+  Contact,
+} from "@/utils/contacts";
 import { createTabAnimations } from "@/animations/tab";
 
 /**
@@ -25,9 +34,9 @@ import { createTabAnimations } from "@/animations/tab";
  */
 const ContactsScreen = () => {
   const { wp, hp } = useDimensions();
-  const [activeTab, setActiveTab] = useState(BUTTONS_OPTIONS.CHATS);
+  const [activeTab, setActiveTab] = useState<string>(BUTTONS_OPTIONS.CHATS);
   const { indicatorPosition, animateTab } = useRef(
-    createTabAnimations(),
+    createTabAnimations()
   ).current;
   const contacts = getValidatedContacts();
 
@@ -57,7 +66,6 @@ const ContactsScreen = () => {
    */
   const handleContactPress = (contact: Contact) => {
     logContactPress(contact);
-    // Add navigation or other logic here
   };
 
   // Calculate indicator position based on active tab
@@ -71,7 +79,7 @@ const ContactsScreen = () => {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingVertical: hp(1) },
+          { paddingVertical: hp(0) },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -84,70 +92,77 @@ const ContactsScreen = () => {
             },
           ]}
         >
-          {/* Button Bar */}
-          <View
-            style={[
-              styles.buttonGrid,
-              {
-                width: "auto",
-                marginHorizontal: wp(5),
-                paddingVertical: hp(2),
-              },
-            ]}
-          >
-            {/* Animated Indicator
-            <Animated.View
+          <View style={styles.headerContainer}>
+            {/* Button Bar */}
+            <View
               style={[
-                styles.tabIndicator,
                 {
-                  left: indicatorLeft,
-                  width: "33.33%",
+                  paddingVertical: hp(2),
                 },
               ]}
-            />*/}
+            >
+              {/* Header Buttons */}
+              <View style={[styles.buttonGrid, { paddingVertical: hp(2) }]}>
+                {BUTTONS_ORDER.map((tab: keyof typeof BUTTONS_OPTIONS) => (
+                  <TouchableOpacity
+                    key={tab}
+                    style={{ flex: 1 }}
+                    onPress={() => handleButtonPress(tab)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.buttonView]}>
+                      <Text style={[styles.buttonTitle]}>
+                        {BUTTONS_OPTIONS[tab]}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
 
-            {/* Header Buttons */}
-            {BUTTONS_ORDER.map((tab: any) => (
-              <TouchableOpacity
-                key={tab}
-                style={{ flex: 1 }}
-                onPress={() => handleButtonPress(tab)}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.buttonView]}>
-                  <Text style={[styles.buttonTitle]}>
-                    {BUTTONS_OPTIONS[tab]}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+            {/* Tabs Bar */}
+            <View
+              style={[
+                styles.buttonGrid,
+                {
+                  width: "auto",
+                  marginHorizontal: wp(5),
+                  paddingVertical: hp(2),
+                },
+              ]}
+            >
+              {/* Animated Indicator */}
+              <Animated.View
+                style={[
+                  styles.tabIndicator,
+                  {
+                    left: indicatorLeft,
+                    width: "33.33%",
+                  },
+                ]}
+              />
 
-          {/* Tabs Bar */}
-          <View
-            style={[
-              styles.buttonGrid,
-              {
-                width: "auto",
-                marginHorizontal: wp(5),
-                paddingVertical: hp(2),
-              },
-            ]}
-          >
-            {/* Tabs */}
-            {TABS_ORDER.map((tab: any, index: number) => (
-              <TouchableOpacity
-                key={tab}
-                style={{ flex: 1 }}
-                onPress={() => handleTabPress(tab, index)}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.buttonView]}>
-                  <Text style={[styles.buttonTitle]}>{TABS_OPTIONS[tab]}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+              {/* Tabs */}
+              {TABS_ORDER.map(
+                (tab: keyof typeof TABS_OPTIONS, index: number) => (
+                  <TouchableOpacity
+                    key={tab}
+                    style={{ flex: 1 }}
+                    onPress={() => handleTabPress(tab, index)}
+                    activeOpacity={0.1}
+                  >
+                    <View style={[styles.buttonView]}>
+                      <Text style={[styles.buttonTitle]}>
+                        {TABS_OPTIONS[tab]}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              )}
+            </View>
           </View>
+          <View style={[styles.lineItemPin]}></View>
+
           {/* Contacts List */}
           <View style={styles.contactContainer}>
             {contacts.map((contact, index) => (
@@ -159,6 +174,7 @@ const ContactsScreen = () => {
                 <View
                   style={[
                     styles.contactItem,
+                    styles.lineItem,
                     index === contacts.length - 1 && styles.lastItem,
                   ]}
                 >

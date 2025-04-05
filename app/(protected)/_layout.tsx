@@ -1,102 +1,134 @@
-import { View, StyleSheet, Pressable, useWindowDimensions } from "react-native";
+import { View, StyleSheet, TouchableOpacity, useWindowDimensions, Animated } from "react-native";
 import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRef } from "react";
 
 export default function ProtectedLayout() {
-  const { width } = useWindowDimensions();
-
-  const CustomTabBar = ({ state, navigation }) => {
-    return (
-      <View style={styles.tabBarContainer}>
-        {/* Основной контент с закруглением */}
-        <View style={styles.tabBarBackground} />
-        <View style={styles.tabBarContent}>
-          {state.routes.map((route, index) => {
-            const isActive = state.index === index;
-            const iconName =
-              route.name === "index" ? "message-text" : "account";
-
-            return (
-              <Pressable
-                key={route.key}
-                onPress={() => navigation.navigate(route.name)}
-                style={[styles.tabButton, isActive && styles.activeButton]}
-              >
-                <MaterialCommunityIcons
-                  name={iconName}
-                  size={30}
-                  color={isActive ? "#ed622b" : "#666"}
-                />
-                {isActive && <View style={styles.activeDot} />}
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.container}>
       <Tabs
         tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{ headerShown: false }}
       >
-        <Tabs.Screen options={{ tabBarStyle: { zIndex: 2 } }} name="index" />
+        <Tabs.Screen name="index" />
         <Tabs.Screen name="options" />
       </Tabs>
     </View>
   );
 }
 
+const iconNameForRoute = (routeName) => {
+  switch (routeName) {
+    case "index":
+      return "message-processing";
+    case "options":
+      return "account-cog";
+    default:
+      return "";
+  }
+}
+
+const CustomTabBar = ({ state, navigation }) => {
+  const { width } = useWindowDimensions();
+  const animations = useRef(state.routes.map(() => new Animated.Value(1))).current;
+
+  const handlePress = (index, route) => {
+    Animated.sequence([
+      Animated.spring(animations[index], {
+        toValue: 0.9,
+        useNativeDriver: true,
+      }),
+      Animated.spring(animations[index], {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    navigation.navigate(route);
+  };
+
+  return (
+    <View style={[styles.tabBarContainer, { width }]}>
+      <View style={styles.tabBarBackground} />
+      
+      <View style={styles.tabBarContent}>
+        {state.routes.map((route, index) => {
+          const isActive = state.index === index;    
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={() => handlePress(index, route.name)}
+              style={styles.tabButton}
+              activeOpacity={0.7}
+            >
+              <Animated.View style={{ transform: [{ scale: animations[index] }] }}>
+                <MaterialCommunityIcons
+                  name={iconNameForRoute(route.name)}
+                  size={isActive ? 30 : 26}
+                  color={isActive ? "#FFFFFF" : "#9E6E4C"}
+                />
+              </Animated.View>
+              {isActive && (
+                <View style={styles.activeLine}>
+                  <View style={styles.activeLineInner} />
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#F9F9F9",
   },
   tabBarContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
-    left: 0,
-    right: 0,
-    height: 81,
-    zIndex: 1,
+    height: 80,
+    flexDirection: 'row',
+    borderTopWidth: 0,
+    elevation: 0,
   },
   tabBarBackground: {
-    position: "absolute",
-    bottom: 0,
-    height: 60,
-    backgroundColor: "#fff",
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFB17A',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
   },
   tabBarContent: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
     flex: 1,
-    marginBottom: 20,
-    borderRadius: 24,
-    backgroundColor: "#f5f5f5",
-    elevation: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingBottom: 8,
   },
   tabButton: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 12,
-    position: "relative",
-    borderRadius: 20, // Закругление кнопок
+    borderRadius: 16,
+    position: 'relative',
   },
-  activeButton: {
-    backgroundColor: "#f5f5f5", // Добавление фона для активной кнопки
-    elevation: 10, // Эффект поднятия активной кнопки
-  },
-  activeDot: {
-    position: "absolute",
+  activeLine: {
+    position: 'absolute',
     bottom: 4,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#ed622b",
+    height: 3,
+    width: '60%',
+    backgroundColor: '#FF6B6B20',
+    borderRadius: 2,
+  },
+  activeLineInner: {
+    height: '100%',
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
   },
 });
