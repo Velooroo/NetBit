@@ -4,7 +4,6 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "transparent",
-    paddingBottom: 80,
     alignItems: "center",
   },
   chatContainer: {
@@ -15,11 +14,24 @@ export const styles = StyleSheet.create({
     alignSelf: "center",
   },
   headerContainer: {
-    backgroundColor: '#FFE3CF',
+    backgroundColor: "#FFE3CF",
   },
   contactContainer: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
+  },
+  rightContainer: {
+    marginLeft: "auto",
+    alignItems: "flex-end",
+    marginRight: 16,
+    flexDirection: "row",
+  },
+  muteIcon: {
+    marginRight: 8,
+  },
+  timeText: {
+    fontSize: 12,
+    color: "#666",
   },
   scrollContent: {
     paddingBottom: 24,
@@ -30,6 +42,7 @@ export const styles = StyleSheet.create({
     flexWrap: "wrap",
     width: "auto",
     flexDirection: "row",
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 20,
@@ -43,7 +56,7 @@ export const styles = StyleSheet.create({
   buttonTitle: {
     fontSize: 20,
     textAlign: "center",
-    color: '#333333',
+    color: "#333333",
   },
   contactItem: {
     flexDirection: "row",
@@ -51,14 +64,26 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
   },
+  contactPinItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: "#FFE3CF",
+  },
   lineItem: {
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
+    alignSelf: "center",
   },
   lineItemPin: {
     borderBottomWidth: 1,
     borderBottomColor: "#9E6E4C",
-    opacity: 0.5
+    alignSelf: "center",
+  },
+  lineBackground: {
+    backgroundColor: "#FFE3CF",
+    flex: 1,
   },
   lastItem: {
     borderBottomWidth: 0,
@@ -94,6 +119,7 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 4,
+    color: "#333333",
   },
   contactStatus: {
     fontSize: 14,
@@ -103,7 +129,6 @@ export const styles = StyleSheet.create({
   tabIndicator: {
     position: "absolute",
     alignSelf: "center",
-    opacity: 1,
     borderRadius: 8,
     height: 30,
     backgroundColor: "#FFFDED",

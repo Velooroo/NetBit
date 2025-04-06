@@ -13,17 +13,31 @@ export const CONTACTS = [
 ] as const;
 
 export const PINNED_CONTACTS = [
-  { id: 5, name: "Jane Doe", status: "Last online 4 hours ago", online: true },
-  { id: 6, name: "David Johnson", status: "Away", online: false },
-]
+  {
+    id: 5,
+    name: "Jane Doe",
+    status: "Last online 4 hours ago",
+    notification: true,
+    online: true,
+    priority: 1,
+  },
+  {
+    id: 6,
+    name: "David Johnson",
+    status: "Online 4 hours",
+    online: false,
+    priority: 0,
+  },
+];
 
 export type Contact = {
   id: number | string;
   name: string;
   status?: string;
   online?: boolean;
-  notifications?: boolean;
+  notification?: boolean;
   lastMessageData?: number;
+  priority?: number;
 };
 
 interface ContactData {
@@ -31,11 +45,13 @@ interface ContactData {
   name?: unknown;
   status?: unknown;
   online?: unknown;
-  notifications?: unknown;
+  notification?: unknown;
   lastMessageData?: unknown;
+  priority?: unknown;
 }
 
-const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+const generateId = () =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
 /**
  * Validates and normalizes contact data
@@ -44,18 +60,19 @@ const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 11
  */
 export const validateContact = (contact: unknown): Contact => {
   // Проверка типа и защита от null/примитивов
-  const safeContact = (typeof contact === 'object' && contact !== null) 
-    ? contact as ContactData 
-    : {};
+  const safeContact =
+    typeof contact === "object" && contact !== null
+      ? (contact as ContactData)
+      : {};
 
-    return {
-      id:              typeIdenf (Number(safeContact.id), 'number', generateId()),
-      name:            typeIdenf (safeContact.name, 'string', 'Unknown Contact'),
-      status:          typeIdenf (safeContact.status, 'string', 'Last seen recently'),
-      online:          typeIdenf (safeContact.online, 'boolean', false),
-      notifications:   typeIdenf (safeContact.notifications, 'boolean', false),
-      lastMessageData: typeIdenf (safeContact.lastMessageData, 'number', 0),
-    };
+  return {
+    id: typeIdenf(Number(safeContact.id), "number", generateId()),
+    name: typeIdenf(safeContact.name, "string", "Unknown Contact"),
+    status: typeIdenf(safeContact.status, "string", "Last seen recently"),
+    online: typeIdenf(safeContact.online, "boolean", false),
+    notification: typeIdenf(safeContact.notification, "boolean", false),
+    lastMessageData: typeIdenf(safeContact.lastMessageData, "number", 0),
+  };
 };
 
 /**

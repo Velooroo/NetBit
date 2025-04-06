@@ -1,3 +1,9 @@
-import { typeIdenf, typeCheck } from "./utils/type";
+import { arrayFormatIndex } from "./utils/array";
+const array_test = [
+  [1, "t", "a"],
+  [4, "a", "b"],
+  [2, "c", "b"],
+];
 
-// console.log(typeIdenf('', "string", "huita"));
+arrayFormatIndex(array_test);
+

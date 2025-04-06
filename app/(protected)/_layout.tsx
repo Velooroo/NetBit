@@ -1,4 +1,10 @@
-import { View, StyleSheet, TouchableOpacity, useWindowDimensions, Animated } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  Animated,
+} from "react-native";
 import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRef } from "react";
@@ -26,11 +32,13 @@ const iconNameForRoute = (routeName) => {
     default:
       return "";
   }
-}
+};
 
 const CustomTabBar = ({ state, navigation }) => {
   const { width } = useWindowDimensions();
-  const animations = useRef(state.routes.map(() => new Animated.Value(1))).current;
+  const animations = useRef(
+    state.routes.map(() => new Animated.Value(1)),
+  ).current;
 
   const handlePress = (index, route) => {
     Animated.sequence([
@@ -49,10 +57,10 @@ const CustomTabBar = ({ state, navigation }) => {
   return (
     <View style={[styles.tabBarContainer, { width }]}>
       <View style={styles.tabBarBackground} />
-      
+
       <View style={styles.tabBarContent}>
         {state.routes.map((route, index) => {
-          const isActive = state.index === index;    
+          const isActive = state.index === index;
           return (
             <TouchableOpacity
               key={route.key}
@@ -60,7 +68,9 @@ const CustomTabBar = ({ state, navigation }) => {
               style={styles.tabButton}
               activeOpacity={0.7}
             >
-              <Animated.View style={{ transform: [{ scale: animations[index] }] }}>
+              <Animated.View
+                style={{ transform: [{ scale: animations[index] }] }}
+              >
                 <MaterialCommunityIcons
                   name={iconNameForRoute(route.name)}
                   size={isActive ? 30 : 26}
@@ -86,19 +96,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9F9F9",
   },
   tabBarContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     height: 80,
-    flexDirection: 'row',
+    flexDirection: "row",
     borderTopWidth: 0,
     elevation: 0,
   },
   tabBarBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FFB17A',
+    backgroundColor: "#FFB17A",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -106,29 +116,30 @@ const styles = StyleSheet.create({
   },
   tabBarContent: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
     paddingBottom: 8,
   },
   tabButton: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 12,
     borderRadius: 16,
-    position: 'relative',
+    position: "relative",
   },
   activeLine: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 4,
     height: 3,
-    width: '60%',
-    backgroundColor: '#FF6B6B20',
+    width: "60%",
+    backgroundColor: "#FF6B6B20",
     borderRadius: 2,
   },
   activeLineInner: {
-    height: '100%',
-    width: '100%',
-    backgroundColor: '#FFFFFF',
+    height: "100%",
+    width: "100%",
+    backgroundColor: "#FFFFFF",
     borderRadius: 2,
   },
 });
+
