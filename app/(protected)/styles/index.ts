@@ -42,7 +42,13 @@ export const styles = StyleSheet.create({
     flexWrap: "wrap",
     width: "auto",
     flexDirection: "row",
-    marginBottom: 20,
+  },
+  tabGrid: {
+    marginHorizontal: "10%",
+    marginTop: "-5%",
+    marginBottom: "5%",
+    flex: 1,
+    flexDirection: "row",
   },
   sectionTitle: {
     fontSize: 20,
@@ -91,6 +97,16 @@ export const styles = StyleSheet.create({
   avatar: {
     width: 72,
     height: 72,
+    borderRadius: 48,
+    backgroundColor: "#e1e1e1",
+    marginRight: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  history: {
+    width: 56,
+    height: 56,
     borderRadius: 48,
     backgroundColor: "#e1e1e1",
     marginRight: 12,

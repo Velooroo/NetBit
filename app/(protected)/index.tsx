@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import moment from "moment";
 
 import { useDimensions } from "@/hooks/useDimensions";
 import { styles } from "@/app/(protected)/styles/index";
@@ -21,6 +22,7 @@ import {
   logContactPress,
   Contact,
 } from "@/utils/contacts";
+import { getHistories } from "@/utils/people";
 import { createTabAnimations } from "@/animations/tab";
 
 // Типы для пропсов компонента ContactItem
@@ -83,10 +85,9 @@ const ContactItem = React.memo(
               />
             )}
             <Text style={styles.timeText}>
-              {new Date(contact.lastMessageTime).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {moment(contact.lastMessageData).isSame(moment(), "day")
+                ? moment(contact.lastMessageData).format("h:mm A")
+                : moment(contact.lastMessageData).format("MMM D, YYYY")}
             </Text>
           </View>
         </View>
@@ -111,6 +112,7 @@ const ContactsScreen = () => {
   // Получение данных контактов
   const contacts = getValidatedContacts();
   const pinnedContacts = getPinnedValidatedContacts();
+  const histories = getHistories();
 
   // Мемоизированные обработчики событий
   const handleContactPress = useCallback((contact: Contact) => {
@@ -166,8 +168,32 @@ const ContactsScreen = () => {
             ))}
           </View>
 
+          <View
+            style={{
+              width: wp(90),
+              height: 100,
+              flexDirection: "row",
+              marginHorizontal: wp(5),
+            }}
+          >
+            {histories.map((history) => (
+              <View style={{ flex: 1 }}>
+                <TouchableOpacity
+                  key={history.id}
+                  style={{
+                    width: wp(100),
+                    height: hp(100),
+                  }}
+                  onPress={() => handleButtonPress(String(history.id))}
+                >
+                  <View style={styles.history}></View>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+
           {/* Панель табов с анимированным индикатором */}
-          <View style={[styles.buttonGrid, styles.tabContainer]}>
+          <View style={[styles.tabGrid]}>
             <Animated.View
               style={[
                 styles.tabIndicator,

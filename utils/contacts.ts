@@ -20,6 +20,7 @@ export const PINNED_CONTACTS = [
     notification: true,
     online: true,
     priority: 1,
+    lastMessageData: 1744091287000,
   },
   {
     id: 6,
@@ -36,7 +37,7 @@ export type Contact = {
   status?: string;
   online?: boolean;
   notification?: boolean;
-  lastMessageData?: number;
+  lastMessageData?: number | null;
   priority?: number;
 };
 
@@ -71,7 +72,7 @@ export const validateContact = (contact: unknown): Contact => {
     status: typeIdenf(safeContact.status, "string", "Last seen recently"),
     online: typeIdenf(safeContact.online, "boolean", false),
     notification: typeIdenf(safeContact.notification, "boolean", false),
-    lastMessageData: typeIdenf(safeContact.lastMessageData, "number", 0),
+    lastMessageData: typeIdenf(safeContact.lastMessageData, "number", null),
   };
 };
 
