@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { AuthProvider } from "../context/AuthProvider";
 import { DimensionsProvider } from "../context/DimensionContext";
+import React from "react";
 
 export default function RootLayout() {
   return (

@@ -20,7 +20,7 @@ export const PINNED_CONTACTS = [
     notification: true,
     online: true,
     priority: 1,
-    lastMessageData: 1744091287000,
+    lastMessageData: 1744227265000,
   },
   {
     id: 6,

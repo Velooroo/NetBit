@@ -64,7 +64,7 @@ const ContactItem = React.memo(
           {/* Аватар с индикатором статуса */}
           <View style={styles.avatar}>
             <View
-              style={[styles.statusIndicator, contact.online && styles.online]}
+              style={[contact.online && [styles.statusIndicator, styles.online]]}
             />
           </View>
 
@@ -85,9 +85,12 @@ const ContactItem = React.memo(
               />
             )}
             <Text style={styles.timeText}>
-              {moment(contact.lastMessageData).isSame(moment(), "day")
-                ? moment(contact.lastMessageData).format("h:mm A")
-                : moment(contact.lastMessageData).format("MMM D, YYYY")}
+                {moment(contact.lastMessageData).isSame(moment(), "day")
+                ? moment(contact.lastMessageData).format("HH:MM")
+                  : moment(contact.lastMessageData).isSame(moment(), "year")
+                  ? moment(contact.lastMessageData).format("DD.MM")
+                    : moment(contact.lastMessageData).format("DD.MM.YY")
+                }
             </Text>
           </View>
         </View>
@@ -173,7 +176,7 @@ const ContactsScreen = () => {
               width: wp(90),
               height: 100,
               flexDirection: "row",
-              marginHorizontal: wp(5),
+              marginHorizontal: wp(7),
             }}
           >
             {histories.map((history) => (
