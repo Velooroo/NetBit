@@ -9,6 +9,8 @@ import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRef } from "react";
 
+const showTabs = false
+
 export default function ProtectedLayout() {
   return (
     <View style={styles.container}>
@@ -54,41 +56,42 @@ const CustomTabBar = ({ state, navigation }) => {
     navigation.navigate(route);
   };
 
-  return (
-    <View style={[styles.tabBarContainer, { width }]}>
-      <View style={styles.tabBarBackground} />
-
-      <View style={styles.tabBarContent}>
-        {state.routes.map((route, index) => {
-          const isActive = state.index === index;
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={() => handlePress(index, route.name)}
-              style={styles.tabButton}
-              activeOpacity={0.7}
-            >
-              <Animated.View
-                style={{ transform: [{ scale: animations[index] }] }}
+  if (showTabs) {
+    return (
+      <View style={[styles.tabBarContainer, { width }]}>
+        <View style={styles.tabBarBackground} />
+        <View style={styles.tabBarContent}>
+          {state.routes.map((route, index) => {
+            const isActive = state.index === index;
+            return (
+              <TouchableOpacity
+                key={route.key}
+                onPress={() => handlePress(index, route.name)}
+                style={styles.tabButton}
+                activeOpacity={0.7}
               >
-                <MaterialCommunityIcons
-                  name={iconNameForRoute(route.name)}
-                  size={isActive ? 30 : 26}
-                  color={isActive ? "#FFFFFF" : "#9E6E4C"}
-                />
-              </Animated.View>
-              {isActive && (
-                <View style={styles.activeLine}>
-                  <View style={styles.activeLineInner} />
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+                <Animated.View
+                  style={{ transform: [{ scale: animations[index] }] }}
+                >
+                  <MaterialCommunityIcons
+                    name={iconNameForRoute(route.name)}
+                    size={isActive ? 30 : 26}
+                    color={isActive ? "#FFFFFF" : "#9E6E4C"}
+                  />
+                </Animated.View>
+                {isActive && (
+                  <View style={styles.activeLine}>
+                    <View style={styles.activeLineInner} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
-    </View>
-  );
-};
+    );
+  };
+}
 
 const styles = StyleSheet.create({
   container: {

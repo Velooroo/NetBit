@@ -1,4 +1,3 @@
-// animations/tab.animations.ts
 import { Animated } from "react-native";
 
 /**

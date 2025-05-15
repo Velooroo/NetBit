@@ -5,7 +5,9 @@ import {
   Text,
   TouchableOpacity,
   Animated,
+  Button,
 } from "react-native";
+import { useRouter, Link } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import moment from "moment";
@@ -105,6 +107,7 @@ const ContactItem = React.memo(
  * Экран контактов с табами и списками контактов
  */
 const ContactsScreen = () => {
+  const router = useRouter();
   const { wp, hp } = useDimensions();
   const { top, left, bottom, right } = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<string>(BUTTONS_OPTIONS.CHATS);
@@ -152,6 +155,26 @@ const ContactsScreen = () => {
         paddingRight: right,
       }}
     >
+      <TouchableOpacity
+        style={{
+          backgroundColor: "#FFB17A",
+          padding: 12,
+          borderRadius: 10,
+          alignSelf: "center",
+          marginTop: 10,
+          marginBottom: 10,
+          elevation: 3,
+        }}
+        onPress={() => router.push({
+          pathname: '/chat',
+          params: { id: 'test-chat-123' }
+        })}
+      >
+        <Text style={{ color: "#FFF", fontWeight: "bold", fontSize: 16 }}>
+          Открыть тестовый чат
+        </Text>
+      </TouchableOpacity>
+      
       <View style={[styles.chatContainer, { width: wp(100) }]}>
         {/* Шапка с кнопками и табами */}
         <View style={styles.headerContainer}>
@@ -171,26 +194,34 @@ const ContactsScreen = () => {
             ))}
           </View>
 
+          {/* Шапка с историями */}
           <View
             style={{
               width: wp(90),
-              height: 100,
+              height: 150,
               flexDirection: "row",
               marginHorizontal: wp(7),
             }}
           >
             {histories.map((history) => (
               <View style={{ flex: 1 }}>
-                <TouchableOpacity
-                  key={history.id}
-                  style={{
-                    width: wp(100),
-                    height: hp(100),
-                  }}
-                  onPress={() => handleButtonPress(String(history.id))}
+                <Link
+                  href={{
+                    pathname: '/chat',
+                    params: { id: 'bacon' }
+                  }} style={{ flex: 1 }}
                 >
-                  <View style={styles.history}></View>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    key={history.id}
+                    style={{
+                      width: wp(100),
+                      height: hp(100),
+                    }}
+                    onPress={() => handleButtonPress(String(history.id))}
+                  >
+                    <View style={styles.history}></View>
+                  </TouchableOpacity>
+                </Link> 
               </View>
             ))}
           </View>
