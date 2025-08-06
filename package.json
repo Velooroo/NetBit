@@ -1,0 +1,29 @@
+{
+  "name": "netbit",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:mobile:emu": "cd packages/mobile && npm start android",
+    "dev:mobile:ios": "cd packages/mobile && npm start ios",
+    "dev:mobile:web": "cd packages/mobile && npx expo start --web",
+    "dev:web": "cd packages/web && npm start",
+    "dev:backend": "cd packages/backend && cargo run",
+    "build:mobile": "cd packages/mobile && npm run build",
+    "build:web": "cd packages/web && npm run build",
+    "build:backend": "cd packages/backend && cargo build --release",
+    "install:all": "npm install && cd packages/mobile && npm install && cd ../web && npm install",
+    "clean": "rm -rf node_modules packages/*/node_modules packages/backend/target",
+    "lint": "cd packages/mobile && npm run lint && cd ../web && npm run lint",
+    "test": "cd packages/mobile && npm test && cd ../web && npm test"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
