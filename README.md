@@ -1,50 +1,258 @@
-# Welcome to your Expo app 👋
+# NetBit - Универсальная платформа для разработки
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+NetBit - это современная платформа, объединяющая Git-сервер, систему управления проектами и мессенджер в единую экосистему для разработчиков.
 
-## Get started
+## 🏗️ Архитектура проекта
 
-1. Install dependencies
+Проект организован как монорепозиторий с разделением на платформы:
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+netbit/
+├── packages/
+│   ├── backend/          # Rust backend (Git HTTP Server + API)
+│   ├── web/             # React веб-приложение
+│   ├── mobile/          # React Native мобильное приложение
+│   └── shared/          # Общие типы и API клиент
+├── package.json         # Workspace конфигурация
+└── README.md
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🚀 Возможности
 
-## Learn more
+### Backend (Rust)
+- **Git HTTP Server** - полная поддержка Git Smart HTTP Protocol
+- **RESTful API** - для управления проектами, репозиториями, пользователями
+- **Система чатов** - встроенный мессенджер для команд
+- **Уведомления** - система уведомлений о событиях
+- **SQLite база данных** - легкая и быстрая база данных
 
-To learn more about developing your project with Expo, look at the following resources:
+### Web (React + TypeScript)
+- **Управление проектами** - создание и управление проектами
+- **Просмотр репозиториев** - веб-интерфейс для Git репозиториев
+- **Файловый браузер** - просмотр файлов и коммитов
+- **Responsive дизайн** - адаптивный интерфейс
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Mobile (React Native + Expo)
+- **Нативный чат** - полнофункциональный мессенджер
+- **Уведомления** - push-уведомления о событиях
+- **Управление проектами** - мобильный доступ к проектам
+- **Кроссплатформенность** - iOS и Android
 
-## Join the community
+### Shared
+- **Общие типы** - TypeScript типы для всех платформ
+- **API клиент** - единый HTTP клиент с типизацией
+- **Утилиты** - общие функции и константы
 
-Join our community of developers creating universal apps.
+## 🛠️ Технологический стек
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Backend
+- **Rust** - системный язык программирования
+- **Actix Web** - веб-фреймворк
+- **SQLite** - база данных
+- **Serde** - сериализация JSON
+- **Git2** - работа с Git репозиториями
+
+### Frontend
+- **React 18** - UI библиотека
+- **TypeScript** - типизированный JavaScript
+- **Vite** - сборщик и dev сервер
+- **Tailwind CSS** - CSS фреймворк
+
+### Mobile
+- **React Native** - кроссплатформенная разработка
+- **Expo** - платформа для React Native
+- **Expo Router** - навигация
+- **TypeScript** - типизация
+
+## 📦 Установка и запуск
+
+### Предварительные требования
+- **Node.js** >= 18.0.0
+- **Rust** >= 1.70.0
+- **Git** >= 2.30.0
+
+### Установка зависимостей
+```bash
+# Установка всех зависимостей
+npm run install:all
+
+# Или по отдельности
+npm install                    # Root workspace
+cd packages/mobile && npm install
+cd packages/web && npm install
+cd packages/shared && npm run build
+```
+
+### Запуск в режиме разработки
+
+#### Backend (Rust)
+```bash
+npm run dev:backend
+# или
+cd packages/backend && cargo run
+```
+
+#### Web приложение
+```bash
+npm run dev:web
+# или
+cd packages/web && npm start
+```
+
+#### Мобильное приложение
+```bash
+npm run dev:mobile
+# или
+cd packages/mobile && npm start
+```
+
+### Сборка для продакшена
+```bash
+npm run build:backend    # Rust binary
+npm run build:web        # Static files
+npm run build:mobile     # APK/IPA
+```
+
+## 🔧 Конфигурация
+
+### Backend конфигурация
+Создайте файл `packages/backend/.env`:
+```env
+HOST=127.0.0.1
+PORT=8000
+DATABASE_URL=./gitea.db
+GIT_ROOT_PATH=./projects
+LOG_LEVEL=info
+```
+
+### API Endpoints
+
+#### Аутентификация
+- `POST /api/auth/login` - Вход в систему
+- `POST /api/auth/register` - Регистрация
+- `GET /api/user/profile` - Профиль пользователя
+
+#### Проекты
+- `GET /api/projects` - Список проектов
+- `GET /api/projects/public` - Публичные проекты
+- `POST /api/projects/create` - Создание проекта
+- `GET /api/projects/{user}/{project}` - Информация о проекте
+
+#### Чаты
+- `GET /api/chats` - Список чатов пользователя
+- `POST /api/chats` - Создание чата
+- `GET /api/chats/{id}` - Информация о чате
+- `GET /api/chats/{id}/messages` - Сообщения чата
+- `POST /api/chats/{id}/messages` - Отправка сообщения
+
+#### Git HTTP Protocol
+- `GET /git/{user}/{repo}/info/refs` - Git info refs
+- `POST /git/{user}/{repo}/git-upload-pack` - Git upload pack
+- `POST /git/{user}/{repo}/git-receive-pack` - Git receive pack
+
+## 🗄️ База данных
+
+Проект использует SQLite с следующими таблицами:
+
+### Основные таблицы
+- `users` - Пользователи системы
+- `projects` - Проекты
+- `repositories` - Git репозитории
+- `notifications` - Уведомления
+
+### Чаты
+- `chats` - Чаты (личные, групповые, каналы)
+- `chat_participants` - Участники чатов
+- `messages` - Сообщения
+
+## 🔄 Git интеграция
+
+### Клонирование репозитория
+```bash
+git clone http://localhost:8000/git/username/repository.git
+```
+
+### Настройка remote
+```bash
+git remote add origin http://localhost:8000/git/username/repository.git
+```
+
+### Push/Pull
+```bash
+git push origin main
+git pull origin main
+```
+
+## 📱 Мобильное приложение
+
+### Основные экраны
+- **Чаты** - список активных чатов
+- **Проекты** - управление проектами
+- **Уведомления** - центр уведомлений
+- **Профиль** - настройки пользователя
+
+### Навигация
+Приложение использует Expo Router с файловой системой маршрутизации:
+```
+app/
+├── (tabs)/
+│   ├── index.tsx        # Главная (чаты)
+│   ├── projects.tsx     # Проекты
+│   └── profile.tsx      # Профиль
+├── chat/
+│   └── [id].tsx         # Экран чата
+└── _layout.tsx          # Корневой layout
+```
+
+## 🧪 Тестирование
+
+```bash
+npm run test              # Все тесты
+npm run lint              # Линтинг
+```
+
+## 🚀 Деплой
+
+### Backend
+```bash
+cd packages/backend
+cargo build --release
+./target/release/git-http-server
+```
+
+### Web
+```bash
+cd packages/web
+npm run build
+# Деплой статических файлов из dist/
+```
+
+### Mobile
+```bash
+cd packages/mobile
+expo build:android        # Android APK
+expo build:ios           # iOS IPA
+```
+
+## 🤝 Участие в разработке
+
+1. Форкните репозиторий
+2. Создайте ветку для фичи (`git checkout -b feature/amazing-feature`)
+3. Сделайте коммит (`git commit -m 'Add amazing feature'`)
+4. Запушьте ветку (`git push origin feature/amazing-feature`)
+5. Откройте Pull Request
+
+## 📄 Лицензия
+
+Этот проект распространяется под лицензией MIT. См. файл `LICENSE` для подробностей.
+
+## 🆘 Поддержка
+
+Если у вас есть вопросы или проблемы:
+- Создайте Issue в GitHub
+- Напишите в Telegram: @your_username
+- Email: support@netbit.dev
+
+---
+
+**NetBit** - Объединяем разработку, общение и управление проектами в одной платформе! 🚀
