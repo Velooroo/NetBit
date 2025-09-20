@@ -179,6 +179,11 @@ packages/shared/lib/
 *.swo
 *~
 
+# Personal configuration files
+.tmux.conf
+.zshrc
+.bashrc
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -187,6 +192,11 @@ packages/shared/lib/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Design assets and source files (should be in separate design repo)
+Исходники/
+source-assets/
+design-files/
 
 # Logs
 logs
