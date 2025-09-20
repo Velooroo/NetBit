@@ -117,7 +117,7 @@ public
 # RUST BACKEND
 # ============================================================================
 
-# Rust
+# Rust API
 packages/backend/target/
 packages/backend/Cargo.lock
 packages/backend/*.db
@@ -125,6 +125,17 @@ packages/backend/*.sqlite
 packages/backend/*.sqlite3
 packages/backend/projects/
 packages/backend/.env
+
+# Rust CLI
+packages/cli/target/
+packages/cli/Cargo.lock
+packages/cli/*.db
+packages/cli/*.sqlite
+packages/cli/*.sqlite3
+packages/cli/projects/
+packages/cli/.env
+packages/cli/notes
+packages/cli/schedule
 
 # Rust debug info
 **/*.pdb
