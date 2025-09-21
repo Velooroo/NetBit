@@ -7,6 +7,8 @@ import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RepoPage from './pages/RepoPage';
+import ChatPage from './pages/ChatPage';
+import ProfilePage from './pages/ProfilePage';
 
 interface User {
   id: number;
@@ -58,6 +60,14 @@ function App() {
             } />
             <Route path="/repo/:name/:branch" element={
               user ? <RepoPage/> : <LoginPage onLogin={handleLogin} />
+            } />
+
+            <Route path="/chat" element={
+              user ? <ChatPage /> : <Navigate to="/login" />
+            } />
+            
+            <Route path="/profile" element={
+              user ? <ProfilePage /> : <Navigate to="/login" />
             } />
  
           </Routes>
