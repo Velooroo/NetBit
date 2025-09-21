@@ -1,79 +1,143 @@
+//! # NetBit Backend Server
+//! 
+//! Это основной сервер NetBit - универсальной платформы для разработчиков.
+//! Сервер предоставляет:
+//! - Git Smart HTTP Protocol для работы с репозиториями
+//! - RESTful API для управления проектами, пользователями и чатами
+//! - WebSocket поддержку для real-time коммуникации
+//! - Систему аутентификации и авторизации
+//!
+//! ## Архитектура
+//! 
+//! ```
+//! src/
+//! ├── main.rs           # Точка входа и конфигурация сервера
+//! ├── core/             # Ядро системы
+//! │   ├── config.rs     # Конфигурация приложения  
+//! │   ├── database.rs   # Работа с базой данных SQLite
+//! │   ├── auth.rs       # Система аутентификации JWT
+//! │   └── types.rs      # Общие типы данных
+//! ├── domain/           # Доменные модели (бизнес-логика)
+//! │   ├── user.rs       # Модель пользователя
+//! │   ├── project.rs    # Модель проекта
+//! │   ├── repository.rs # Модель репозитория
+//! │   ├── chat.rs       # Модель чата
+//! │   └── notification.rs # Модель уведомлений
+//! ├── api/              # HTTP API обработчики
+//! │   ├── user.rs       # Эндпоинты пользователей
+//! │   ├── project.rs    # Эндпоинты проектов
+//! │   ├── git.rs        # Git Smart HTTP Protocol
+//! │   ├── chat.rs       # Эндпоинты чатов
+//! │   └── notification.rs # Эндпоинты уведомлений
+//! └── utils/            # Утилиты и вспомогательные функции
+//!     ├── git.rs        # Git операции
+//!     └── helpers.rs    # Общие вспомогательные функции
+//! ```
+
 use actix_web::{web, App, HttpServer, middleware::Logger};
 use actix_files as fs;
 use actix_cors::Cors;
 use env_logger;
 
 // ============================================================================
-// ИМПОРТЫ МОДУЛЕЙ
+// ИМПОРТЫ МОДУЛЕЙ ПРИЛОЖЕНИЯ
 // ============================================================================
 
+/// Ядро системы - базовая функциональность
 mod core;
+/// Доменные модели - бизнес-логика приложения
 mod domain;
+/// API обработчики - HTTP эндпоинты
 mod api;
+/// Утилиты - вспомогательные функции
 mod utils;
 
 use core::{database::Database, config::load_config, config::validate_config, config::print_config};
 
 // ============================================================================
-// ОСНОВНАЯ ФУНКЦИЯ
+// ОСНОВНАЯ ФУНКЦИЯ ПРИЛОЖЕНИЯ
 // ============================================================================
 
+/// Точка входа приложения NetBit Backend
+/// 
+/// Эта функция выполняет следующие шаги:
+/// 1. Инициализирует систему логирования
+/// 2. Загружает и валидирует конфигурацию из переменных окружения
+/// 3. Подключается к базе данных SQLite
+/// 4. Выполняет миграции базы данных
+/// 5. Настраивает и запускает HTTP сервер с CORS и маршрутами
+///
+/// # Переменные окружения
+/// - `HOST` - IP адрес для привязки сервера (по умолчанию: 0.0.0.0)
+/// - `PORT` - Порт для HTTP сервера (по умолчанию: 8000)  
+/// - `DATABASE_URL` - Путь к файлу базы данных SQLite (по умолчанию: gitea.db)
+/// - `JWT_SECRET` - Секретный ключ для JWT токенов
+/// - `REPOSITORIES_PATH` - Путь к папке с Git репозиториями
+///
+/// # Возвращает
+/// `std::io::Result<()>` - Результат выполнения сервера
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Инициализация логгера
+    // Инициализация системы логирования для отладки и мониторинга
     env_logger::init();
+    println!("🚀 Starting NetBit Backend Server...");
 
-    // Загрузка конфигурации
+    // Загрузка конфигурации из переменных окружения или значений по умолчанию
     let config = load_config();
     
-    // Валидация конфигурации
+    // Валидация всех параметров конфигурации перед запуском
     if let Err(e) = validate_config(&config) {
-        eprintln!("Configuration error: {}", e);
+        eprintln!("❌ Configuration error: {}", e);
         std::process::exit(1);
     }
 
-    // Вывод конфигурации
+    // Вывод текущей конфигурации (без секретных данных)
     print_config(&config);
 
-    // Инициализация базы данных
+    // Инициализация подключения к базе данных SQLite
     let database = match Database::new(&config.database_url) {
         Ok(db) => {
-            println!("Database connected successfully");
+            println!("✅ Database connected successfully");
             db
         },
         Err(e) => {
-            eprintln!("Failed to connect to database: {}", e);
+            eprintln!("❌ Failed to connect to database: {}", e);
             std::process::exit(1);
         }
     };
 
-    // Тест подключения к базе данных
+    // Тестирование подключения к базе данных
     if let Err(e) = database.test_connection() {
-        eprintln!("Database connection test failed: {}", e);
+        eprintln!("❌ Database connection test failed: {}", e);
         std::process::exit(1);
     }
 
-    // Выполнение миграций
+    // Выполнение миграций базы данных для обновления схемы
     if let Err(e) = database.migrate() {
-        eprintln!("Database migration failed: {}", e);
+        eprintln!("❌ Database migration failed: {}", e);
         std::process::exit(1);
     }
 
     let bind_address = format!("{}:{}", config.host, config.port);
-    println!("Starting server at http://{}", bind_address);
+    println!("🌐 Starting server at http://{}", bind_address);
 
-    // Запуск HTTP сервера
+    // Запуск HTTP сервера с настройкой middleware и маршрутов
     HttpServer::new(move || {
+        // Настройка CORS для кроссплатформенной работы с веб и мобильными клиентами
         let cors = Cors::default()
-            .allow_any_origin()
-            .allow_any_method()
-            .allow_any_header()
-            .max_age(3600);
+            .allow_any_origin()      // Разрешить запросы с любых доменов (только для разработки!)
+            .allow_any_method()      // Разрешить все HTTP методы (GET, POST, PUT, DELETE)
+            .allow_any_header()      // Разрешить все заголовки
+            .max_age(3600);          // Кэширование preflight запросов на 1 час
 
         App::new()
+            // Внедрение зависимости базы данных для использования в обработчиках
             .app_data(web::Data::new(database.clone()))
+            // Middleware для CORS
             .wrap(cors)
+            // Middleware для логирования HTTP запросов
             .wrap(Logger::default())
+            // Конфигурация всех API маршрутов
             .configure(configure_routes)
     })
     .bind(&bind_address)?
@@ -82,64 +146,107 @@ async fn main() -> std::io::Result<()> {
 }
 
 // ============================================================================
-// КОНФИГУРАЦИЯ МАРШРУТОВ
+// КОНФИГУРАЦИЯ API МАРШРУТОВ
 // ============================================================================
 
+/// Настраивает все API маршруты приложения
+/// 
+/// Организация маршрутов:
+/// - `/api/auth/*` - Аутентификация пользователей
+/// - `/api/user/*` - Операции с пользователями  
+/// - `/api/projects/*` - Управление проектами
+/// - `/api/chats/*` - Система чатов и сообщений
+/// - `/api/notifications/*` - Уведомления
+/// - `/git/*` - Git Smart HTTP Protocol
+/// - `/api/repos/*` - Устаревшие эндпоинты репозиториев
+///
+/// # Аргументы
+/// * `cfg` - Конфигуратор сервисов Actix Web
 fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg
-        // API маршруты для аутентификации
+        // ========================================================================
+        // АУТЕНТИФИКАЦИЯ И АВТОРИЗАЦИЯ
+        // ========================================================================
         .service(
             web::scope("/api/auth")
-                .route("/login", web::post().to(api::user::login))
-                .route("/register", web::post().to(api::user::register))
+                .route("/login", web::post().to(api::user::login))           // POST /api/auth/login
+                .route("/register", web::post().to(api::user::register))     // POST /api/auth/register
         )
-        // API маршруты для пользователей
+        
+        // ========================================================================
+        // УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ
+        // ========================================================================
         .service(
             web::scope("/api/user")
-                .route("/profile", web::get().to(api::user::user_profile))
+                .route("/profile", web::get().to(api::user::user_profile))  // GET /api/user/profile
         )
-        // API маршруты для проектов
+        
+        // ========================================================================
+        // УПРАВЛЕНИЕ ПРОЕКТАМИ
+        // ========================================================================
         .service(
             web::scope("/api/projects")
-                .route("", web::get().to(api::project::list_projects))
-                .route("/public", web::get().to(api::project::list_public_projects))
-                .route("/create", web::post().to(api::project::create_project))
-                .route("/{user}/{project}", web::get().to(api::project::get_project))
-                .route("/{user}/{project}/config", web::get().to(api::project::get_project_config))
-                .route("/{user}/{project}/config", web::put().to(api::project::update_project_config))
-                .route("/{user}/{project}/repos/create", web::post().to(api::project::create_repo_in_project))
+                .route("", web::get().to(api::project::list_projects))                              // GET /api/projects
+                .route("/public", web::get().to(api::project::list_public_projects))               // GET /api/projects/public
+                .route("/create", web::post().to(api::project::create_project))                     // POST /api/projects/create
+                .route("/{user}/{project}", web::get().to(api::project::get_project))              // GET /api/projects/{user}/{project}
+                .route("/{user}/{project}/config", web::get().to(api::project::get_project_config)) // GET /api/projects/{user}/{project}/config
+                .route("/{user}/{project}/config", web::put().to(api::project::update_project_config)) // PUT /api/projects/{user}/{project}/config
+                .route("/{user}/{project}/repos/create", web::post().to(api::project::create_repo_in_project)) // POST /api/projects/{user}/{project}/repos/create
         )
-        // API маршруты для уведомлений
+        
+        // ========================================================================
+        // СИСТЕМА УВЕДОМЛЕНИЙ
+        // ========================================================================
         .service(
             web::scope("/api/notifications")
-                .route("", web::get().to(api::notification::get_notifications))
-                .route("", web::post().to(api::notification::create_notification))
-                .route("/{id}", web::put().to(api::notification::update_notification))
-                .route("/{id}", web::delete().to(api::notification::delete_notification))
+                .route("", web::get().to(api::notification::get_notifications))        // GET /api/notifications
+                .route("", web::post().to(api::notification::create_notification))     // POST /api/notifications
+                .route("/{id}", web::put().to(api::notification::update_notification)) // PUT /api/notifications/{id}
+                .route("/{id}", web::delete().to(api::notification::delete_notification)) // DELETE /api/notifications/{id}
         )
-        // API маршруты для чатов
+        
+        // ========================================================================
+        // СИСТЕМА ЧАТОВ И СООБЩЕНИЙ
+        // ========================================================================
         .service(
             web::scope("/api/chats")
-                .route("", web::get().to(api::chat::get_chats))
-                .route("", web::post().to(api::chat::create_chat))
-                .route("/{id}", web::get().to(api::chat::get_chat))
-                .route("/{id}/messages", web::get().to(api::chat::get_messages))
-                .route("/{id}/messages", web::post().to(api::chat::send_message))
+                .route("", web::get().to(api::chat::get_chats))                      // GET /api/chats - список чатов пользователя
+                .route("", web::post().to(api::chat::create_chat))                   // POST /api/chats - создание нового чата
+                .route("/{id}", web::get().to(api::chat::get_chat))                  // GET /api/chats/{id} - информация о чате
+                .route("/{id}/messages", web::get().to(api::chat::get_messages))     // GET /api/chats/{id}/messages - сообщения чата
+                .route("/{id}/messages", web::post().to(api::chat::send_message))    // POST /api/chats/{id}/messages - отправка сообщения
         )
-        // API маршруты для репозиториев (устаревшие)
+        
+        // ========================================================================
+        // УСТАРЕВШИЕ API РЕПОЗИТОРИЕВ (TODO: Удалить после миграции на проекты)
+        // ========================================================================
         .service(
             web::scope("/api/repos")
-                .route("", web::get().to(api::repo::list_repos))
-                .route("/create", web::post().to(api::repo::create_repo))
-                .route("/{repo_name}", web::get().to(api::repo::get_repo))
+                .route("", web::get().to(api::repo::list_repos))               // GET /api/repos
+                .route("/create", web::post().to(api::repo::create_repo))       // POST /api/repos/create
+                .route("/{repo_name}", web::get().to(api::repo::get_repo))      // GET /api/repos/{repo_name}
         )
-        // Git Smart HTTP Protocol
+        
+        // ========================================================================
+        // GIT SMART HTTP PROTOCOL - Поддержка Git операций
+        // ========================================================================
         .service(
             web::scope("/git")
-                .route("/{user_name}/{repo_name}/info/refs", web::get().to(api::git::handle_info_refs))
-                .route("/{user_name}/{repo_name}/git-upload-pack", web::post().to(api::git::handle_upload_pack))
-                .route("/{user_name}/{repo_name}/git-receive-pack", web::post().to(api::git::handle_receive_pack))
+                // Git info/refs - получение информации о ветках и тегах
+                .route("/{user_name}/{repo_name}/info/refs", 
+                       web::get().to(api::git::handle_info_refs))
+                // Git upload-pack - обработка git fetch/pull
+                .route("/{user_name}/{repo_name}/git-upload-pack", 
+                       web::post().to(api::git::handle_upload_pack))
+                // Git receive-pack - обработка git push
+                .route("/{user_name}/{repo_name}/git-receive-pack", 
+                       web::post().to(api::git::handle_receive_pack))
         );
-        // Статические файлы (если нужны)
+        
+        // ========================================================================
+        // СТАТИЧЕСКИЕ ФАЙЛЫ (Опционально)
+        // ========================================================================
+        // Раскомментировать для обслуживания статических файлов
         // .service(fs::Files::new("/static", "./static").show_files_listing());
 }
