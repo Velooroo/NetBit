@@ -1,7 +1,11 @@
-//! Бизнес-логика и доменные модели
+//! Доменные модели NetBit - бизнес-логика и сущности
 
+// Основные модули
+pub mod user;
+pub mod repository;
+pub mod project;
 pub mod chat;
 pub mod notification;
-pub mod project;
-pub mod repository;
-pub mod user;
+
+// Документированные версии модулей для экспорта
+pub mod user_doc;
