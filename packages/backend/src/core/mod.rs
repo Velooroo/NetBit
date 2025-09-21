@@ -5,6 +5,7 @@ pub mod database;
 pub mod auth;
 pub mod config;
 pub mod types;
+pub mod orm;
 
 // Документированные версии модулей для экспорта
 pub mod database_doc;

@@ -2,14 +2,42 @@
 // ОБЩИЕ ТИПЫ ДЛЯ ВСЕГО ПРОЕКТА NETBIT
 // ============================================================================
 
-// Пользователь
+// Пользователь - базовая информация
 export interface User {
   id: number;
   username: string;
-  email: string;
-  avatar_url?: string;
-  created_at: string;
+  email?: string;
+  full_name?: string;
+  avatar?: string;
+  bio?: string;
   is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Публичный профиль пользователя
+export interface UserProfile {
+  id: number;
+  username: string;
+  full_name?: string;
+  avatar?: string;
+  bio?: string;
+  is_active: boolean;
+  created_at?: string;
+}
+
+// Статистика пользователя
+export interface UserStats {
+  projects_count: number;
+  repositories_count: number;
+  messages_count: number;
+  last_activity?: string;
+}
+
+// Пользователь с статистикой
+export interface UserWithStats {
+  profile: UserProfile;
+  stats: UserStats;
 }
 
 // Проект
@@ -54,25 +82,45 @@ export enum NotificationType {
   SUCCESS = 'success'
 }
 
-// Чат и сообщения (для мобильного приложения)
+// ============================================================================
+// ЧАТЫ И СООБЩЕНИЯ (ОБНОВЛЕНО ПОД BACKEND)
+// ============================================================================
+
+// Чат
 export interface Chat {
-  id: string;
+  id?: number;
   name: string;
-  participants: User[];
-  last_message?: Message;
-  created_at: string;
-  updated_at: string;
+  description?: string;
+  chat_type: ChatType;
+  creator_id: number;
+  avatar?: string;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
+// Тип чата
+export enum ChatType {
+  DIRECT = 'direct',
+  GROUP = 'group',
+  CHANNEL = 'channel'
+}
+
+// Сообщение
 export interface Message {
-  id: string;
-  chat_id: string;
+  id?: number;
+  chat_id: number;
   sender_id: number;
   content: string;
-  type: MessageType;
-  created_at: string;
+  message_type: MessageType;
+  reply_to?: number;
+  is_read: boolean;
+  is_edited: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
+// Тип сообщения
 export enum MessageType {
   TEXT = 'text',
   IMAGE = 'image',
@@ -80,15 +128,76 @@ export enum MessageType {
   SYSTEM = 'system'
 }
 
-// Контакт (для мобильного приложения)
-export interface Contact {
-  id: string;
+// Участник чата
+export interface ChatMember {
+  id?: number;
+  chat_id: number;
+  user_id: number;
+  role: ChatRole;
+  joined_at?: string;
+}
+
+// Роль в чате
+export enum ChatRole {
+  MEMBER = 'member',
+  MODERATOR = 'moderator',
+  ADMIN = 'admin',
+  OWNER = 'owner'
+}
+
+// Чат с дополнительной информацией
+export interface ChatWithLastMessage {
+  chat: Chat;
+  last_message?: Message;
+  unread_count: number;
+  member_count: number;
+}
+
+// Сообщение с информацией об отправителе
+export interface MessageWithSender {
+  message: Message;
+  sender_username: string;
+  sender_avatar?: string;
+}
+
+// Ответ с информацией о чате
+export interface ChatResponse {
+  chat: Chat;
+  members: ChatMember[];
+  last_message?: Message;
+  unread_count: number;
+}
+
+// Ответ со списком сообщений
+export interface MessagesResponse {
+  messages: MessageWithSender[];
+  total: number;
+  has_more: boolean;
+}
+
+// ============================================================================
+// API ЗАПРОСЫ И ОТВЕТЫ
+// ============================================================================
+
+// Создание чата
+export interface CreateChatRequest {
   name: string;
-  status: string;
-  online: boolean;
-  notification: boolean;
-  lastMessageData: string;
-  isPinned?: boolean;
+  description?: string;
+  chat_type: string;
+  members: number[];
+}
+
+// Отправка сообщения
+export interface SendMessageRequest {
+  content: string;
+  message_type?: string;
+  reply_to?: number;
+}
+
+// Добавление участника
+export interface AddMemberRequest {
+  user_id: number;
+  role?: string;
 }
 
 // API Response типы
@@ -116,15 +225,36 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  user: User;
+  user: UserProfile;
   token: string;
-  expires_at: string;
 }
 
 export interface RegisterRequest {
   username: string;
-  email: string;
+  email?: string;
   password: string;
+  full_name?: string;
+}
+
+export interface UpdateProfileRequest {
+  full_name?: string;
+  bio?: string;
+  avatar?: string;
+}
+
+// ============================================================================
+// LEGACY ТИПЫ (ДЛЯ СОВМЕСТИМОСТИ)
+// ============================================================================
+
+// Контакт (для мобильного приложения) - устарело, используйте ChatWithLastMessage
+export interface Contact {
+  id: string;
+  name: string;
+  status: string;
+  online: boolean;
+  notification: boolean;
+  lastMessageData: string;
+  isPinned?: boolean;
 }
 
 // Git операции

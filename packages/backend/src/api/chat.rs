@@ -1,51 +1,45 @@
-//! API обработчики для чатов и сообщений
+//! API обработчики для чатов и сообщений с использованием новой ORM
 
-use actix_web::{web, HttpResponse, Result};
-use serde::{Deserialize, Serialize};
-use log::{debug, error};
-
+use actix_web::{web, HttpResponse, HttpRequest, Result};
 use crate::core::database::Database;
-use crate::domain::chat::{Chat, Message, ChatType, MessageType, ChatRole};
+use crate::domain::chat::{
+    Chat, Message, ChatMember, ChatType, MessageType, ChatRole,
+    ChatWithLastMessage, ChatRepository, MessageRepository, ChatMemberRepository
+};
+use crate::domain::user::{UserRepository};
+use crate::core::auth::Claims;
+use log::{error, info};
+use serde::{Serialize, Deserialize};
 
 // ============================================================================
 // СТРУКТУРЫ ЗАПРОСОВ И ОТВЕТОВ
 // ============================================================================
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CreateChatRequest {
     pub name: String,
+    pub description: Option<String>,
     pub chat_type: String, // "direct", "group", "channel"
-    pub participants: Vec<i64>, // ID участников
+    pub members: Vec<i64>, // ID пользователей для добавления в чат
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct SendMessageRequest {
     pub content: String,
-    pub message_type: Option<String>, // "text", "image", "file", "system"
+    pub message_type: Option<String>, // "text", "image", "file"
+    pub reply_to: Option<i64>, // ID сообщения, на которое отвечаем
 }
 
-#[derive(Serialize)]
-pub struct ChatResponse {
-    pub id: i64,
-    pub name: String,
-    pub chat_type: String,
-    pub creator_id: i64,
-    pub created_at: Option<String>,
-    pub updated_at: Option<String>,
-    pub participants_count: i64,
-    pub last_message: Option<MessageResponse>,
+#[derive(Serialize, Deserialize)]
+pub struct AddMemberRequest {
+    pub user_id: i64,
+    pub role: Option<String>, // "member", "moderator", "admin"
 }
 
-#[derive(Serialize)]
-pub struct MessageResponse {
-    pub id: i64,
-    pub chat_id: i64,
-    pub sender_id: i64,
-    pub content: String,
-    pub message_type: String,
-    pub created_at: Option<String>,
-    pub is_edited: bool,
-    pub edited_at: Option<String>,
+#[derive(Serialize, Deserialize)]
+pub struct MessageQuery {
+    pub limit: Option<i64>,
+    pub offset: Option<i64>,
 }
 
 #[derive(Serialize)]
@@ -56,285 +50,452 @@ pub struct ApiResponse<T> {
 }
 
 #[derive(Serialize)]
-pub struct PaginatedResponse<T> {
-    pub success: bool,
-    pub data: Vec<T>,
-    pub pagination: PaginationInfo,
+pub struct ChatResponse {
+    pub chat: Chat,
+    pub members: Vec<ChatMember>,
+    pub last_message: Option<Message>,
+    pub unread_count: i64,
 }
 
 #[derive(Serialize)]
-pub struct PaginationInfo {
-    pub page: u32,
-    pub per_page: u32,
-    pub total: u32,
-    pub total_pages: u32,
+pub struct MessagesResponse {
+    pub messages: Vec<MessageWithSender>,
+    pub total: i64,
+    pub has_more: bool,
+}
+
+#[derive(Serialize)]
+pub struct MessageWithSender {
+    #[serde(flatten)]
+    pub message: Message,
+    pub sender_username: String,
+    pub sender_avatar: Option<String>,
 }
 
 // ============================================================================
-// API ОБРАБОТЧИКИ
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================================================
 
-/// Получить список чатов пользователя
-pub async fn get_chats(
-    db: web::Data<Database>,
-    query: web::Query<serde_json::Value>,
-) -> Result<HttpResponse> {
-    // TODO: Получить user_id из токена авторизации
-    let user_id = 1i64; // Временно захардкожено
-    
-    debug!("Получение чатов для пользователя: {}", user_id);
-    
-    match Chat::find_by_user(user_id, db.connection.clone()) {
-        Ok(chats) => {
-            let chat_responses: Vec<ChatResponse> = chats.into_iter().map(|chat| {
-                let chat_type_str = match chat.chat_type {
-                    ChatType::Direct => "direct",
-                    ChatType::Group => "group", 
-                    ChatType::Channel => "channel",
-                };
-                
-                ChatResponse {
-                    id: chat.id.unwrap_or(0),
-                    name: chat.name,
-                    chat_type: chat_type_str.to_string(),
-                    creator_id: chat.creator_id,
-                    created_at: chat.created_at,
-                    updated_at: chat.updated_at,
-                    participants_count: 0, // TODO: Подсчитать участников
-                    last_message: None, // TODO: Получить последнее сообщение
-                }
-            }).collect();
-            
-            Ok(HttpResponse::Ok().json(ApiResponse {
-                success: true,
-                message: None,
-                data: Some(chat_responses),
-            }))
-        }
-        Err(e) => {
-            error!("Ошибка при получении чатов: {}", e);
-            Ok(HttpResponse::InternalServerError().json(ApiResponse::<Vec<ChatResponse>> {
-                success: false,
-                message: Some("Ошибка при получении чатов".to_string()),
-                data: None,
-            }))
-        }
+fn create_error_response(message: &str) -> HttpResponse {
+    HttpResponse::InternalServerError().json(ApiResponse::<()> {
+        success: false,
+        message: Some(message.to_string()),
+        data: None,
+    })
+}
+
+fn create_success_response<T: Serialize>(data: T) -> HttpResponse {
+    HttpResponse::Ok().json(ApiResponse {
+        success: true,
+        message: None,
+        data: Some(data),
+    })
+}
+
+fn extract_user_from_request(req: &HttpRequest) -> Result<i64, HttpResponse> {
+    if let Some(user) = req.extensions().get::<Claims>() {
+        Ok(user.user_id)
+    } else {
+        Err(HttpResponse::Unauthorized().json(ApiResponse::<()> {
+            success: false,
+            message: Some("Unauthorized".to_string()),
+            data: None,
+        }))
     }
 }
 
-/// Получить конкретный чат
-pub async fn get_chat(
-    db: web::Data<Database>,
-    path: web::Path<i64>,
-) -> Result<HttpResponse> {
-    let chat_id = path.into_inner();
-    
-    debug!("Получение чата: {}", chat_id);
-    
-    match Chat::find_by_id(chat_id, db.connection.clone()) {
-        Ok(Some(chat)) => {
-            let chat_type_str = match chat.chat_type {
-                ChatType::Direct => "direct",
-                ChatType::Group => "group",
-                ChatType::Channel => "channel",
-            };
-            
-            let response = ChatResponse {
-                id: chat.id.unwrap_or(0),
-                name: chat.name,
-                chat_type: chat_type_str.to_string(),
-                creator_id: chat.creator_id,
-                created_at: chat.created_at,
-                updated_at: chat.updated_at,
-                participants_count: 0, // TODO: Подсчитать участников
-                last_message: None, // TODO: Получить последнее сообщение
-            };
-            
-            Ok(HttpResponse::Ok().json(ApiResponse {
-                success: true,
-                message: None,
-                data: Some(response),
-            }))
-        }
-        Ok(None) => {
-            Ok(HttpResponse::NotFound().json(ApiResponse::<ChatResponse> {
-                success: false,
-                message: Some("Чат не найден".to_string()),
-                data: None,
-            }))
-        }
-        Err(e) => {
-            error!("Ошибка при получении чата: {}", e);
-            Ok(HttpResponse::InternalServerError().json(ApiResponse::<ChatResponse> {
-                success: false,
-                message: Some("Ошибка при получении чата".to_string()),
-                data: None,
-            }))
-        }
-    }
-}
+// ============================================================================
+// API HANDLERS
+// ============================================================================
 
-/// Создать новый чат
-pub async fn create_chat(
-    db: web::Data<Database>,
-    req: web::Json<CreateChatRequest>,
+/// Получение списка чатов пользователя
+pub async fn get_user_chats(
+    req: HttpRequest,
+    db: web::Data<Database>
 ) -> Result<HttpResponse> {
-    // TODO: Получить user_id из токена авторизации
-    let creator_id = 1i64; // Временно захардкожено
-    
-    debug!("Создание чата: {}", req.name);
-    
-    let chat_type = match req.chat_type.as_str() {
-        "direct" => ChatType::Direct,
-        "group" => ChatType::Group,
-        "channel" => ChatType::Channel,
-        _ => ChatType::Group,
+    let user_id = match extract_user_from_request(&req) {
+        Ok(id) => id,
+        Err(response) => return Ok(response),
     };
     
+    let chat_repo = ChatRepository::new(db.get_connection());
+    
+    let chats = match chat_repo.get_user_chats(user_id) {
+        Ok(chats) => chats,
+        Err(e) => {
+            error!("Failed to get user chats: {}", e);
+            return Ok(create_error_response("Failed to get chats"));
+        }
+    };
+    
+    Ok(create_success_response(chats))
+}
+
+/// Создание нового чата
+pub async fn create_chat(
+    req: HttpRequest,
+    create_req: web::Json<CreateChatRequest>,
+    db: web::Data<Database>
+) -> Result<HttpResponse> {
+    let user_id = match extract_user_from_request(&req) {
+        Ok(id) => id,
+        Err(response) => return Ok(response),
+    };
+    
+    let chat_repo = ChatRepository::new(db.get_connection());
+    let member_repo = ChatMemberRepository::new(db.get_connection());
+    let user_repo = UserRepository::new(db.get_connection());
+    
+    // Проверяем, что все участники существуют
+    for member_id in &create_req.members {
+        if user_repo.find_by_id(*member_id).unwrap_or(None).is_none() {
+            return Ok(HttpResponse::BadRequest().json(ApiResponse::<()> {
+                success: false,
+                message: Some(format!("User with ID {} not found", member_id)),
+                data: None,
+            }));
+        }
+    }
+    
+    // Создаём чат
     let chat = Chat {
         id: None,
-        name: req.name.clone(),
-        chat_type,
-        creator_id,
-        created_at: None,
-        updated_at: None,
+        name: create_req.name.clone(),
+        description: create_req.description.clone(),
+        chat_type: ChatType::from_string(&create_req.chat_type),
+        creator_id: user_id,
+        avatar: None,
+        is_active: true,
+        created_at: Some(chrono::Utc::now()),
+        updated_at: Some(chrono::Utc::now()),
     };
     
-    match chat.create(db.connection.clone()) {
-        Ok(chat_id) => {
-            // Добавляем участников
-            for &participant_id in &req.participants {
-                if participant_id != creator_id {
-                    let _ = chat.add_participant(participant_id, ChatRole::Member, db.connection.clone());
-                }
+    let created_chat = match chat_repo.create_chat(chat) {
+        Ok(chat) => chat,
+        Err(e) => {
+            error!("Failed to create chat: {}", e);
+            return Ok(create_error_response("Failed to create chat"));
+        }
+    };
+    
+    let chat_id = created_chat.id.unwrap();
+    
+    // Добавляем создателя как владельца
+    if let Err(e) = member_repo.add_member(chat_id, user_id, ChatRole::Owner) {
+        error!("Failed to add creator to chat: {}", e);
+    }
+    
+    // Добавляем остальных участников
+    for member_id in &create_req.members {
+        if *member_id != user_id {
+            if let Err(e) = member_repo.add_member(chat_id, *member_id, ChatRole::Member) {
+                error!("Failed to add member {} to chat: {}", member_id, e);
             }
-            
-            Ok(HttpResponse::Created().json(ApiResponse {
-                success: true,
-                message: Some("Чат успешно создан".to_string()),
-                data: Some(serde_json::json!({ "id": chat_id })),
-            }))
-        }
-        Err(e) => {
-            error!("Ошибка при создании чата: {}", e);
-            Ok(HttpResponse::InternalServerError().json(ApiResponse::<serde_json::Value> {
-                success: false,
-                message: Some("Ошибка при создании чата".to_string()),
-                data: None,
-            }))
         }
     }
+    
+    // Получаем полную информацию о чате
+    let members = member_repo.get_chat_members(chat_id).unwrap_or_default();
+    let response = ChatResponse {
+        chat: created_chat,
+        members,
+        last_message: None,
+        unread_count: 0,
+    };
+    
+    info!("Created chat {} by user {}", chat_id, user_id);
+    
+    Ok(create_success_response(response))
 }
 
-/// Получить сообщения чата
-pub async fn get_messages(
-    db: web::Data<Database>,
+/// Получение информации о чате
+pub async fn get_chat(
+    req: HttpRequest,
     path: web::Path<i64>,
-    query: web::Query<serde_json::Value>,
+    db: web::Data<Database>
 ) -> Result<HttpResponse> {
+    let user_id = match extract_user_from_request(&req) {
+        Ok(id) => id,
+        Err(response) => return Ok(response),
+    };
+    
     let chat_id = path.into_inner();
-    let page = query.get("page")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(1) as u32;
-    let per_page = query.get("per_page")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(50) as u32;
+    let chat_repo = ChatRepository::new(db.get_connection());
+    let member_repo = ChatMemberRepository::new(db.get_connection());
     
-    debug!("Получение сообщений чата {} (страница: {}, на странице: {})", chat_id, page, per_page);
-    
-    match Message::find_by_chat(chat_id, page, per_page, db.connection.clone()) {
-        Ok(messages) => {
-            let message_responses: Vec<MessageResponse> = messages.into_iter().map(|msg| {
-                let message_type_str = match msg.message_type {
-                    MessageType::Text => "text",
-                    MessageType::Image => "image",
-                    MessageType::File => "file",
-                    MessageType::System => "system",
-                };
-                
-                MessageResponse {
-                    id: msg.id.unwrap_or(0),
-                    chat_id: msg.chat_id,
-                    sender_id: msg.sender_id,
-                    content: msg.content,
-                    message_type: message_type_str.to_string(),
-                    created_at: msg.created_at,
-                    is_edited: msg.is_edited,
-                    edited_at: msg.edited_at,
-                }
-            }).collect();
-            
-            // TODO: Получить общее количество сообщений для пагинации
-            let total = message_responses.len() as u32;
-            let total_pages = (total + per_page - 1) / per_page;
-            
-            Ok(HttpResponse::Ok().json(PaginatedResponse {
-                success: true,
-                data: message_responses,
-                pagination: PaginationInfo {
-                    page,
-                    per_page,
-                    total,
-                    total_pages,
-                },
-            }))
-        }
+    // Проверяем, является ли пользователь участником чата
+    let members = match member_repo.get_chat_members(chat_id) {
+        Ok(members) => members,
         Err(e) => {
-            error!("Ошибка при получении сообщений: {}", e);
-            Ok(HttpResponse::InternalServerError().json(ApiResponse::<Vec<MessageResponse>> {
-                success: false,
-                message: Some("Ошибка при получении сообщений".to_string()),
-                data: None,
-            }))
+            error!("Failed to get chat members: {}", e);
+            return Ok(create_error_response("Failed to get chat information"));
         }
+    };
+    
+    let is_member = members.iter().any(|m| m.user_id == user_id);
+    if !is_member {
+        return Ok(HttpResponse::Forbidden().json(ApiResponse::<()> {
+            success: false,
+            message: Some("Access denied".to_string()),
+            data: None,
+        }));
     }
+    
+    // Получаем информацию о чате
+    let chat = match chat_repo.find_by_id(chat_id) {
+        Ok(Some(chat)) => chat,
+        Ok(None) => return Ok(HttpResponse::NotFound().json(ApiResponse::<()> {
+            success: false,
+            message: Some("Chat not found".to_string()),
+            data: None,
+        })),
+        Err(e) => {
+            error!("Database error: {}", e);
+            return Ok(create_error_response("Database error"));
+        }
+    };
+    
+    // Получаем последнее сообщение и количество непрочитанных
+    let last_message = chat_repo.get_last_message(chat_id).ok().flatten();
+    let unread_count = chat_repo.get_unread_count(chat_id, user_id).unwrap_or(0);
+    
+    let response = ChatResponse {
+        chat,
+        members,
+        last_message,
+        unread_count,
+    };
+    
+    Ok(create_success_response(response))
 }
 
-/// Отправить сообщение в чат
+/// Получение сообщений чата
+pub async fn get_chat_messages(
+    req: HttpRequest,
+    path: web::Path<i64>,
+    query: web::Query<MessageQuery>,
+    db: web::Data<Database>
+) -> Result<HttpResponse> {
+    let user_id = match extract_user_from_request(&req) {
+        Ok(id) => id,
+        Err(response) => return Ok(response),
+    };
+    
+    let chat_id = path.into_inner();
+    let limit = query.limit.unwrap_or(50).min(100); // Максимум 100 сообщений за раз
+    let offset = query.offset.unwrap_or(0);
+    
+    let member_repo = ChatMemberRepository::new(db.get_connection());
+    let message_repo = MessageRepository::new(db.get_connection());
+    let user_repo = UserRepository::new(db.get_connection());
+    
+    // Проверяем, является ли пользователь участником чата
+    let members = match member_repo.get_chat_members(chat_id) {
+        Ok(members) => members,
+        Err(e) => {
+            error!("Failed to get chat members: {}", e);
+            return Ok(create_error_response("Failed to get chat information"));
+        }
+    };
+    
+    let is_member = members.iter().any(|m| m.user_id == user_id);
+    if !is_member {
+        return Ok(HttpResponse::Forbidden().json(ApiResponse::<()> {
+            success: false,
+            message: Some("Access denied".to_string()),
+            data: None,
+        }));
+    }
+    
+    // Получаем сообщения
+    let messages = match message_repo.get_chat_messages(chat_id, limit, offset) {
+        Ok(messages) => messages,
+        Err(e) => {
+            error!("Failed to get messages: {}", e);
+            return Ok(create_error_response("Failed to get messages"));
+        }
+    };
+    
+    // Добавляем информацию об отправителях
+    let mut messages_with_senders = Vec::new();
+    for message in messages {
+        let sender = user_repo.find_by_id(message.sender_id).ok().flatten();
+        let sender_username = sender.as_ref()
+            .map(|u| u.username.clone())
+            .unwrap_or_else(|| "Unknown".to_string());
+        let sender_avatar = sender.as_ref()
+            .and_then(|u| u.avatar.clone());
+        
+        messages_with_senders.push(MessageWithSender {
+            message,
+            sender_username,
+            sender_avatar,
+        });
+    }
+    
+    let has_more = messages_with_senders.len() as i64 == limit;
+    let response = MessagesResponse {
+        messages: messages_with_senders,
+        total: 0, // Можно добавить подсчёт общего количества
+        has_more,
+    };
+    
+    // Отмечаем сообщения как прочитанные
+    if let Err(e) = message_repo.mark_messages_as_read(chat_id, user_id) {
+        error!("Failed to mark messages as read: {}", e);
+    }
+    
+    Ok(create_success_response(response))
+}
+
+/// Отправка сообщения в чат
 pub async fn send_message(
-    db: web::Data<Database>,
+    req: HttpRequest,
     path: web::Path<i64>,
-    req: web::Json<SendMessageRequest>,
+    message_req: web::Json<SendMessageRequest>,
+    db: web::Data<Database>
 ) -> Result<HttpResponse> {
-    let chat_id = path.into_inner();
-    // TODO: Получить user_id из токена авторизации
-    let sender_id = 1i64; // Временно захардкожено
-    
-    debug!("Отправка сообщения в чат {}", chat_id);
-    
-    let message_type = match req.message_type.as_deref().unwrap_or("text") {
-        "image" => MessageType::Image,
-        "file" => MessageType::File,
-        "system" => MessageType::System,
-        _ => MessageType::Text,
+    let user_id = match extract_user_from_request(&req) {
+        Ok(id) => id,
+        Err(response) => return Ok(response),
     };
     
-    match Message::new(chat_id, sender_id, req.content.clone(), message_type) {
-        Ok(message) => {
-            match message.create(db.connection.clone()) {
-                Ok(message_id) => {
-                    Ok(HttpResponse::Created().json(ApiResponse {
-                        success: true,
-                        message: Some("Сообщение отправлено".to_string()),
-                        data: Some(serde_json::json!({ "id": message_id })),
-                    }))
-                }
-                Err(e) => {
-                    error!("Ошибка при сохранении сообщения: {}", e);
-                    Ok(HttpResponse::InternalServerError().json(ApiResponse::<serde_json::Value> {
-                        success: false,
-                        message: Some("Ошибка при отправке сообщения".to_string()),
-                        data: None,
-                    }))
-                }
+    let chat_id = path.into_inner();
+    let member_repo = ChatMemberRepository::new(db.get_connection());
+    let message_repo = MessageRepository::new(db.get_connection());
+    let user_repo = UserRepository::new(db.get_connection());
+    
+    // Проверяем, является ли пользователь участником чата
+    let members = match member_repo.get_chat_members(chat_id) {
+        Ok(members) => members,
+        Err(e) => {
+            error!("Failed to get chat members: {}", e);
+            return Ok(create_error_response("Failed to send message"));
+        }
+    };
+    
+    let is_member = members.iter().any(|m| m.user_id == user_id);
+    if !is_member {
+        return Ok(HttpResponse::Forbidden().json(ApiResponse::<()> {
+            success: false,
+            message: Some("Access denied".to_string()),
+            data: None,
+        }));
+    }
+    
+    // Создаём сообщение
+    let message = Message {
+        id: None,
+        chat_id,
+        sender_id: user_id,
+        content: message_req.content.clone(),
+        message_type: MessageType::from_string(
+            &message_req.message_type.as_deref().unwrap_or("text")
+        ),
+        reply_to: message_req.reply_to,
+        is_read: false,
+        is_edited: false,
+        created_at: Some(chrono::Utc::now()),
+        updated_at: Some(chrono::Utc::now()),
+    };
+    
+    let created_message = match message_repo.create_message(message) {
+        Ok(message) => message,
+        Err(e) => {
+            error!("Failed to create message: {}", e);
+            return Ok(create_error_response("Failed to send message"));
+        }
+    };
+    
+    // Добавляем информацию об отправителе
+    let sender = user_repo.find_by_id(user_id).ok().flatten();
+    let response = MessageWithSender {
+        message: created_message,
+        sender_username: sender.as_ref()
+            .map(|u| u.username.clone())
+            .unwrap_or_else(|| "Unknown".to_string()),
+        sender_avatar: sender.as_ref()
+            .and_then(|u| u.avatar.clone()),
+    };
+    
+    info!("Message sent to chat {} by user {}", chat_id, user_id);
+    
+    Ok(create_success_response(response))
+}
+
+/// Добавление участника в чат
+pub async fn add_member(
+    req: HttpRequest,
+    path: web::Path<i64>,
+    add_req: web::Json<AddMemberRequest>,
+    db: web::Data<Database>
+) -> Result<HttpResponse> {
+    let user_id = match extract_user_from_request(&req) {
+        Ok(id) => id,
+        Err(response) => return Ok(response),
+    };
+    
+    let chat_id = path.into_inner();
+    let member_repo = ChatMemberRepository::new(db.get_connection());
+    let user_repo = UserRepository::new(db.get_connection());
+    
+    // Проверяем права пользователя (должен быть админом или создателем)
+    let members = match member_repo.get_chat_members(chat_id) {
+        Ok(members) => members,
+        Err(e) => {
+            error!("Failed to get chat members: {}", e);
+            return Ok(create_error_response("Failed to add member"));
+        }
+    };
+    
+    let user_member = members.iter().find(|m| m.user_id == user_id);
+    match user_member {
+        Some(member) => {
+            match member.role {
+                ChatRole::Owner | ChatRole::Admin => {},
+                _ => return Ok(HttpResponse::Forbidden().json(ApiResponse::<()> {
+                    success: false,
+                    message: Some("Insufficient permissions".to_string()),
+                    data: None,
+                }))
             }
         }
-        Err(validation_error) => {
-            Ok(HttpResponse::BadRequest().json(ApiResponse::<serde_json::Value> {
-                success: false,
-                message: Some(validation_error),
-                data: None,
-            }))
-        }
+        None => return Ok(HttpResponse::Forbidden().json(ApiResponse::<()> {
+            success: false,
+            message: Some("Access denied".to_string()),
+            data: None,
+        }))
     }
+    
+    // Проверяем, что пользователь существует
+    if user_repo.find_by_id(add_req.user_id).unwrap_or(None).is_none() {
+        return Ok(HttpResponse::NotFound().json(ApiResponse::<()> {
+            success: false,
+            message: Some("User not found".to_string()),
+            data: None,
+        }));
+    }
+    
+    // Проверяем, что пользователь ещё не в чате
+    if members.iter().any(|m| m.user_id == add_req.user_id) {
+        return Ok(HttpResponse::BadRequest().json(ApiResponse::<()> {
+            success: false,
+            message: Some("User is already a member".to_string()),
+            data: None,
+        }));
+    }
+    
+    // Добавляем участника
+    let role = ChatRole::from_string(&add_req.role.as_deref().unwrap_or("member"));
+    let member = match member_repo.add_member(chat_id, add_req.user_id, role) {
+        Ok(member) => member,
+        Err(e) => {
+            error!("Failed to add member: {}", e);
+            return Ok(create_error_response("Failed to add member"));
+        }
+    };
+    
+    info!("Added member {} to chat {} by user {}", add_req.user_id, chat_id, user_id);
+    
+    Ok(create_success_response(member))
 }

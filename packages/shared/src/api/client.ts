@@ -49,6 +49,11 @@ export class ApiClient {
     this.token = null;
   }
 
+  // Получение базового URL
+  getBaseURL(): string {
+    return this.client.defaults.baseURL || '';
+  }
+
   // Базовые HTTP методы
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
