@@ -6,7 +6,9 @@ import './index.css';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import RepoPage from './pages/RepoPage';
+import CreateRepoPage from './pages/CreateRepoPage';
 import ChatPage from './pages/ChatPage';
 import ProfilePage from './pages/ProfilePage';
 
@@ -14,6 +16,8 @@ interface User {
   id: number;
   username: string;
   email: string | null;
+  full_name?: string;
+  token?: string;
 }
 
 function App() {
@@ -28,6 +32,7 @@ function App() {
       } catch (e) {
         console.error('Failed to parse stored user', e);
         localStorage.removeItem('user');
+        localStorage.removeItem('auth_token');
       }
     }
   }, []);
@@ -38,12 +43,13 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
     setUser(null);
   };
 
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-gray-100">
+      <div className="min-h-screen flex flex-col bg-gray-50">
         <main className="flex-grow">
           { user ? <Header user={user} onLogout={handleLogout} /> : null } 
           <Routes>
@@ -51,15 +57,24 @@ function App() {
             <Route path="/" element={
               user ? <HomePage /> : <Navigate to="/login" />
             } />
+            
             <Route path="/login" element={
               user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />
             } />
+            
+            <Route path="/register" element={
+              user ? <Navigate to="/" /> : <RegisterPage onLogin={handleLogin} />
+            } />
+
+            <Route path="/repo/new" element={
+              user ? <CreateRepoPage /> : <Navigate to="/login" />
+            } />
 
             <Route path="/repo/:name" element={
-              user ? <RepoPage/> : <LoginPage onLogin={handleLogin} />
+              user ? <RepoPage/> : <Navigate to="/login" />
             } />
             <Route path="/repo/:name/:branch" element={
-              user ? <RepoPage/> : <LoginPage onLogin={handleLogin} />
+              user ? <RepoPage/> : <Navigate to="/login" />
             } />
 
             <Route path="/chat" element={

@@ -1,87 +1,137 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiGitBranch, FiStar, FiClock, FiPlus } from 'react-icons/fi';
-import { FaCodeBranch } from 'react-icons/fa';
+import { 
+  GitBranch, 
+  Plus, 
+  Star, 
+  GitFork, 
+  Clock, 
+  Users,
+  Search,
+  BarChart3,
+  MessageSquare,
+  Activity
+} from 'lucide-react';
 
 interface Repository {
   id: number;
   name: string;
   description: string | null;
-  owner_id: number;
+  is_public: boolean;
   created_at: string;
-  stars_count?: number;
-  forks_count?: number;
+  owner: {
+    username: string;
+    full_name: string | null;
+  };
+  stats: {
+    stars: number;
+    forks: number;
+    commits: number;
+  };
 }
 
-interface ApiResponse {
-  success: boolean;
-  message: string | null;
-  data: Repository[] | null;
+interface RecentActivity {
+  id: number;
+  type: 'commit' | 'message' | 'repo_created';
+  title: string;
+  description: string;
+  timestamp: string;
+  repository?: string;
 }
 
 const HomePage: React.FC = () => {
   const [repositories, setRepositories] = useState<Repository[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const fetchRepositories = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/api/repos', {
-          headers: {
-            'Authorization': `Basic ${btoa('Kazilsky:password123')}`
-          }
-        });
-
-        const data: ApiResponse = await response.json();
-        
-        if (data.success && data.data) {
-          // Добавляем mock-данные для демонстрации
-          const reposWithStats = data.data.map(repo => ({
-            ...repo,
-            stars_count: Math.floor(Math.random() * 100),
-            forks_count: Math.floor(Math.random() * 50)
-          }));
-          setRepositories(reposWithStats);
-        } else {
-          setError(data.message || 'Failed to fetch repositories');
-        }
-      } catch (err) {
-        setError('Error connecting to the server');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRepositories();
+    loadDashboardData();
   }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      
+      // Load repositories
+      const reposResponse = await fetch('http://localhost:8000/api/repositories', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (reposResponse.ok) {
+        const reposData = await reposResponse.json();
+        setRepositories(reposData.data || []);
+      }
+
+      // Load recent activity (mock data for now)
+      setRecentActivity([
+        {
+          id: 1,
+          type: 'commit',
+          title: 'Initial commit',
+          description: 'Added project structure and basic configuration',
+          timestamp: '2024-01-15T10:30:00Z',
+          repository: 'my-project'
+        },
+        {
+          id: 2,
+          type: 'message',
+          title: 'Team discussion',
+          description: 'Discussed new feature implementation in dev chat',
+          timestamp: '2024-01-15T09:15:00Z'
+        },
+        {
+          id: 3,
+          type: 'repo_created',
+          title: 'Repository created',
+          description: 'Created new repository: awesome-api',
+          timestamp: '2024-01-14T16:45:00Z',
+          repository: 'awesome-api'
+        }
+      ]);
+      
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredRepositories = repositories.filter(repo =>
+    repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (repo.description && repo.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'commit':
+        return <GitBranch className="w-4 h-4 text-green-600" />;
+      case 'message':
+        return <MessageSquare className="w-4 h-4 text-blue-600" />;
+      case 'repo_created':
+        return <Plus className="w-4 h-4 text-purple-600" />;
+      default:
+        return <Activity className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 max-w-md w-full">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error fetching repositories</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your workspace...</p>
         </div>
       </div>
     );
@@ -89,107 +139,235 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Your Repositories</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {repositories.length} {repositories.length === 1 ? 'repository' : 'repositories'}
-            </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl p-8 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold mb-2">Welcome back to NetBit!</h1>
+                <p className="text-blue-100 text-lg">
+                  Your unified development platform for Git repositories and team collaboration
+                </p>
+              </div>
+              <div className="hidden md:block">
+                <div className="bg-white/20 rounded-lg p-4">
+                  <BarChart3 className="w-12 h-12" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <GitBranch className="w-5 h-5" />
+                  <span className="font-medium">{repositories.length} Repositories</span>
+                </div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <MessageSquare className="w-5 h-5" />
+                  <span className="font-medium">Active Chats</span>
+                </div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-5 h-5" />
+                  <span className="font-medium">Team Collaboration</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <Link 
-            to="/create-repo" 
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <FiPlus className="mr-2" />
-            New Repository
-          </Link>
         </div>
 
-        {repositories.length === 0 ? (
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6 text-center">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-              <h3 className="mt-2 text-lg font-medium text-gray-900">No repositories</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Get started by creating a new repository.
-              </p>
-              <div className="mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Repositories Section */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Your Repositories</h2>
+                  <Link
+                    to="/repo/new"
+                    className="flex items-center space-x-1 px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-200 text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>New Repository</span>
+                  </Link>
+                </div>
+                
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search repositories..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              
+              <div className="divide-y divide-gray-200">
+                {filteredRepositories.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <GitBranch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No repositories found</h3>
+                    <p className="text-gray-500 mb-4">
+                      {searchTerm ? 'Try adjusting your search terms.' : 'Create your first repository to get started.'}
+                    </p>
+                    {!searchTerm && (
+                      <Link
+                        to="/repo/new"
+                        className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Create Repository</span>
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  filteredRepositories.map(repo => (
+                    <div key={repo.id} className="p-6 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Link
+                              to={`/repo/${repo.name}`}
+                              className="text-lg font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                            >
+                              {repo.name}
+                            </Link>
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              repo.is_public 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {repo.is_public ? 'Public' : 'Private'}
+                            </span>
+                          </div>
+                          
+                          {repo.description && (
+                            <p className="text-gray-600 mb-3">{repo.description}</p>
+                          )}
+                          
+                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-4 h-4" />
+                              <span>{repo.stats?.stars || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <GitFork className="w-4 h-4" />
+                              <span>{repo.stats?.forks || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4" />
+                              <span>Updated {formatDate(repo.created_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity Sidebar */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+              </div>
+              <div className="p-6">
+                {recentActivity.length === 0 ? (
+                  <div className="text-center">
+                    <Activity className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">No recent activity</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentActivity.map(activity => (
+                      <div key={activity.id} className="flex space-x-3">
+                        <div className="flex-shrink-0">
+                          {getActivityIcon(activity.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">
+                            {activity.title}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {activity.description}
+                          </p>
+                          {activity.repository && (
+                            <Link
+                              to={`/repo/${activity.repository}`}
+                              className="text-xs text-blue-600 hover:text-blue-800"
+                            >
+                              {activity.repository}
+                            </Link>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            {formatDate(activity.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+              </div>
+              <div className="p-6 space-y-3">
                 <Link
-                  to="/create-repo"
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  to="/repo/new"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <FiPlus className="-ml-1 mr-2 h-5 w-5" />
-                  New Repository
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Plus className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">New Repository</p>
+                    <p className="text-sm text-gray-500">Create a new project</p>
+                  </div>
+                </Link>
+                
+                <Link
+                  to="/chat"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <MessageSquare className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Team Chat</p>
+                    <p className="text-sm text-gray-500">Join the conversation</p>
+                  </div>
+                </Link>
+                
+                <Link
+                  to="/profile"
+                  className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Your Profile</p>
+                    <p className="text-sm text-gray-500">View your stats</p>
+                  </div>
                 </Link>
               </div>
             </div>
           </div>
-        ) : (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {repositories.map((repo) => (
-              <div key={repo.id} className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-all duration-200">
-                <Link to={`/repo/${repo.name}`} className="block">
-                  <div className="px-4 py-5 sm:p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 bg-indigo-500 rounded-md p-2">
-                        <FiGitBranch className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <h3 className="text-lg font-medium text-gray-900 truncate">{repo.name}</h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {repo.description || 'No description provided'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-6 flex justify-between items-center">
-                      <div className="flex space-x-4">
-                        <span className="inline-flex items-center text-sm text-gray-500">
-                          <FiStar className="mr-1 text-yellow-500" />
-                          {repo.stars_count}
-                        </span>
-                        <span className="inline-flex items-center text-sm text-gray-500">
-                          <FaCodeBranch className="mr-1 text-gray-400" />
-                          {repo.forks_count}
-                        </span>
-                      </div>
-                      <span className="inline-flex items-center text-sm text-gray-500">
-                        <FiClock className="mr-1 text-gray-400" />
-                        {new Date(repo.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
-
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} GitClone. All rights reserved.
-          </p>
         </div>
-      </footer>
+      </div>
     </div>
   );
 };
