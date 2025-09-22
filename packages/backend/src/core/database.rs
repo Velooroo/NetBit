@@ -40,6 +40,17 @@ impl Database {
             )",
             [],
         )?;
+        
+        // Добавляю по дефолту себя
+        conn.execute(
+            "
+            INSERT INTO users (username, password, email) 
+            VALUES ('Kazilsky', 'password123', 'mk9151341600@gmail.com')
+            ",
+            []
+        );
+
+        println!("Добавлен пользователь Kazilsky с паролем password123");
 
         // Таблица проектов
         conn.execute(
