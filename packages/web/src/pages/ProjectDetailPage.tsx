@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FiFolder, FiPlus, FiGitBranch, FiStar, FiClock, FiLock, FiUnlock, FiSettings, FiArrowLeft } from 'react-icons/fi';
+import { apiRequest } from '../lib/api';
 
 interface Project {
   id: number;
@@ -54,18 +55,12 @@ const ProjectDetailPage: React.FC = () => {
 
       try {
         // Assuming the username is Kazilsky for now - in a real app this would come from auth context
-        const response = await fetch(`http://localhost:8000/api/projects/Kazilsky/${projectName}`, {
-          headers: {
-            'Authorization': `Basic ${btoa('Kazilsky:password123')}`
-          }
-        });
-
-        const data: ApiResponse<ProjectDetails> = await response.json();
+        const response = await apiRequest<ProjectDetails>(`http://localhost:8000/api/projects/Kazilsky/${projectName}`);
         
-        if (data.success && data.data) {
-          setProjectDetails(data.data);
+        if (response.success && response.data) {
+          setProjectDetails(response.data);
         } else {
-          setError(data.message || 'Failed to fetch project details');
+          setError(response.message || 'Failed to fetch project details');
         }
       } catch (err) {
         setError('Error connecting to the server');
@@ -84,22 +79,16 @@ const ProjectDetailPage: React.FC = () => {
 
     setIsCreatingRepo(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/projects/Kazilsky/${projectName}/repos/create`, {
+      const response = await apiRequest<Repository>(`http://localhost:8000/api/projects/Kazilsky/${projectName}/repos/create`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa('Kazilsky:password123')}`
-        },
         body: JSON.stringify(newRepo),
       });
 
-      const data: ApiResponse<Repository> = await response.json();
-
-      if (data.success && data.data) {
+      if (response.success && response.data) {
         // Refresh project details to show the new repository
         window.location.reload();
       } else {
-        setError(data.message || 'Failed to create repository');
+        setError(response.message || 'Failed to create repository');
       }
     } catch (err) {
       setError('Error creating repository');

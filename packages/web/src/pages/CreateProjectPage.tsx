@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FiArrowLeft, FiFolder, FiLock, FiUnlock, FiInfo } from 'react-icons/fi';
+import { apiRequest } from '../lib/api';
 
 interface CreateProjectRequest {
   name: string;
   description?: string;
   is_public: boolean;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  message?: string;
-  data?: T;
 }
 
 const CreateProjectPage: React.FC = () => {
@@ -30,22 +25,16 @@ const CreateProjectPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/projects/create', {
+      const response = await apiRequest<any>('http://localhost:8000/api/projects/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${btoa('Kazilsky:password123')}`
-        },
         body: JSON.stringify(formData),
       });
 
-      const data: ApiResponse<any> = await response.json();
-
-      if (data.success && data.data) {
+      if (response.success && response.data) {
         // Redirect to the newly created project
-        navigate(`/projects/${data.data.name}`);
+        navigate(`/projects/${response.data.name}`);
       } else {
-        setError(data.message || 'Failed to create project');
+        setError(response.message || 'Failed to create project');
       }
     } catch (err: any) {
       setError('Error connecting to the server');

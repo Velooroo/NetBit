@@ -44,10 +44,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       const data = await response.json();
 
       if (data.success && data.data) {
-        // Store user data and auth token
-        localStorage.setItem('user', JSON.stringify(data.data));
-        // Call the onLogin prop
-        onLogin(data.data);
+        // Store user data and auth token separately
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        localStorage.setItem('authToken', data.data.token);
+        // Call the onLogin prop with just the user data
+        onLogin(data.data.user);
         // Redirect to home page
         navigate('/');
       } else {

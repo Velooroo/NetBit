@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiFolder, FiStar, FiClock, FiPlus, FiLock, FiUnlock, FiUsers } from 'react-icons/fi';
+import { apiRequest } from '../lib/api';
 
 interface Project {
   id: number;
@@ -11,12 +12,6 @@ interface Project {
   created_at: string;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string | null;
-  data: T | null;
-}
-
 const ProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -25,18 +20,12 @@ const ProjectsPage: React.FC = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/projects', {
-          headers: {
-            'Authorization': `Basic ${btoa('Kazilsky:password123')}`
-          }
-        });
-
-        const data: ApiResponse<Project[]> = await response.json();
+        const response = await apiRequest<Project[]>('http://localhost:8000/api/projects');
         
-        if (data.success && data.data) {
-          setProjects(data.data);
+        if (response.success && response.data) {
+          setProjects(response.data);
         } else {
-          setError(data.message || 'Failed to fetch projects');
+          setError(response.message || 'Failed to fetch projects');
         }
       } catch (err) {
         setError('Error connecting to the server');
