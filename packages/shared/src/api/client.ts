@@ -21,7 +21,7 @@ export class ApiClient {
     // Interceptor для добавления токена
     this.client.interceptors.request.use((config) => {
       if (this.token) {
-        config.headers.Authorization = `Bearer ${this.token}`;
+        config.headers.Authorization = this.token;
       }
       return config;
     });

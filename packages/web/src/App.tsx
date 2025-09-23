@@ -4,7 +4,9 @@ import './index.css';
 
 // Import components
 import Header from './components/Header';
-import HomePage from './pages/HomePage';
+import ProjectsPage from './pages/ProjectsPage';
+import CreateProjectPage from './pages/CreateProjectPage';
+import ProjectDetailPage from './pages/ProjectDetailPage';
 import LoginPage from './pages/LoginPage';
 import RepoPage from './pages/RepoPage';
 
@@ -47,12 +49,22 @@ function App() {
           <Routes>
           
             <Route path="/" element={
-              user ? <HomePage /> : <Navigate to="/login" />
+              user ? <ProjectsPage /> : <Navigate to="/login" />
             } />
             <Route path="/login" element={
               user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />
             } />
+            <Route path="/create-project" element={
+              user ? <CreateProjectPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/projects/:projectName" element={
+              user ? <ProjectDetailPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/projects/:projectName/:repoName" element={
+              user ? <RepoPage /> : <Navigate to="/login" />
+            } />
 
+            {/* Legacy routes for backward compatibility */}
             <Route path="/repo/:name" element={
               user ? <RepoPage/> : <LoginPage onLogin={handleLogin} />
             } />
