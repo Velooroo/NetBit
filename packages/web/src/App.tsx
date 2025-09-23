@@ -9,6 +9,9 @@ import CreateProjectPage from './pages/CreateProjectPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
+import MessagesPage from './pages/MessagesPage';
 import RepoPage from './pages/RepoPage';
 
 interface User {
@@ -59,6 +62,18 @@ function App() {
             } />
             <Route path="/login" element={
               user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />
+            } />
+            <Route path="/profile" element={
+              user ? <ProfilePage /> : <Navigate to="/login" />
+            } />
+            <Route path="/settings" element={
+              user ? <SettingsPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/settings/:section" element={
+              user ? <SettingsPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/messages" element={
+              user ? <MessagesPage /> : <Navigate to="/login" />
             } />
             <Route path="/create-project" element={
               user ? <CreateProjectPage /> : <Navigate to="/login" />

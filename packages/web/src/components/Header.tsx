@@ -47,6 +47,12 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                 Projects
               </Link>
               <Link 
+                to="/messages" 
+                className="text-gray-300 hover:text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+              >
+                Messages
+              </Link>
+              <Link 
                 to="/explore" 
                 className="text-gray-300 hover:text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
               >
