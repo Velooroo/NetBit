@@ -173,3 +173,74 @@ pub async fn get_repo(
         }
     }
 }
+
+/// Get repository in project context (new project-based route)
+pub async fn get_repo_in_project(
+    req: HttpRequest,
+    path: web::Path<(String, String, String)>,
+    query: web::Query<RepoQuery>,
+    db: web::Data<Database>,
+) -> Result<HttpResponse> {
+    let (username, project_name, repo_name) = path.into_inner();
+    
+    // For now, delegate to the existing get_repo function
+    // In the future, this could include project-specific logic
+    let repo_path = web::Path::from(repo_name);
+    get_repo(req, repo_path, query, db).await
+}
+
+/// Get repository contents (project-based route)
+pub async fn get_repo_contents(
+    _req: HttpRequest,
+    _path: web::Path<(String, String, String)>,
+    _db: web::Data<Database>,
+) -> Result<HttpResponse> {
+    // Placeholder implementation
+    Ok(HttpResponse::Ok().json(ApiResponse::<Vec<String>> {
+        success: true,
+        message: None,
+        data: Some(vec![]),
+    }))
+}
+
+/// Get repository commits (project-based route)
+pub async fn get_repo_commits(
+    _req: HttpRequest,
+    _path: web::Path<(String, String, String)>,
+    _db: web::Data<Database>,
+) -> Result<HttpResponse> {
+    // Placeholder implementation
+    Ok(HttpResponse::Ok().json(ApiResponse::<Vec<String>> {
+        success: true,
+        message: None,
+        data: Some(vec![]),
+    }))
+}
+
+/// Get repository branches (project-based route)
+pub async fn get_repo_branches(
+    _req: HttpRequest,
+    _path: web::Path<(String, String, String)>,
+    _db: web::Data<Database>,
+) -> Result<HttpResponse> {
+    // Placeholder implementation
+    Ok(HttpResponse::Ok().json(ApiResponse::<Vec<String>> {
+        success: true,
+        message: None,
+        data: Some(vec!["main".to_string()]),
+    }))
+}
+
+/// Get repository README (project-based route)
+pub async fn get_repo_readme(
+    _req: HttpRequest,
+    _path: web::Path<(String, String, String)>,
+    _db: web::Data<Database>,
+) -> Result<HttpResponse> {
+    // Placeholder implementation
+    Ok(HttpResponse::Ok().json(ApiResponse::<String> {
+        success: true,
+        message: None,
+        data: Some("# Repository README\n\nThis is a placeholder README file.".to_string()),
+    }))
+}

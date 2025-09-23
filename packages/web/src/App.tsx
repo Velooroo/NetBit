@@ -8,6 +8,7 @@ import ProjectsPage from './pages/ProjectsPage';
 import CreateProjectPage from './pages/CreateProjectPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import LoginPage from './pages/LoginPage';
+import LandingPage from './pages/LandingPage';
 import RepoPage from './pages/RepoPage';
 
 interface User {
@@ -42,15 +43,19 @@ function App() {
     setUser(null);
   };
 
+  const handleGetStarted = () => {
+    // Navigate to login page when "Get Started" is clicked
+    window.location.href = '/login';
+  };
+
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-gray-100">
+      <div className="min-h-screen flex flex-col">
+        {user && <Header user={user} onLogout={handleLogout} />}
         <main className="flex-grow">
-          { user ? <Header user={user} onLogout={handleLogout} /> : null } 
           <Routes>
-          
             <Route path="/" element={
-              user ? <ProjectsPage /> : <Navigate to="/login" />
+              user ? <ProjectsPage /> : <LandingPage onGetStarted={handleGetStarted} />
             } />
             <Route path="/login" element={
               user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />
@@ -67,10 +72,10 @@ function App() {
 
             {/* Legacy routes for backward compatibility */}
             <Route path="/repo/:name" element={
-              user ? <RepoPage/> : <LoginPage onLogin={handleLogin} />
+              user ? <RepoPage/> : <Navigate to="/login" />
             } />
             <Route path="/repo/:name/:branch" element={
-              user ? <RepoPage/> : <LoginPage onLogin={handleLogin} />
+              user ? <RepoPage/> : <Navigate to="/login" />
             } />
  
           </Routes>
