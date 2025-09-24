@@ -4,8 +4,14 @@ import './index.css';
 
 // Import components
 import Header from './components/Header';
-import HomePage from './pages/HomePage';
+import ProjectsPage from './pages/ProjectsPage';
+import CreateProjectPage from './pages/CreateProjectPage';
+import ProjectDetailPage from './pages/ProjectDetailPage';
 import LoginPage from './pages/LoginPage';
+import LandingPage from './pages/LandingPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
+import MessagesPage from './pages/MessagesPage';
 import RepoPage from './pages/RepoPage';
 
 interface User {
@@ -36,28 +42,55 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
     setUser(null);
+  };
+
+  const handleGetStarted = () => {
+    // Navigate to login page when "Get Started" is clicked
+    window.location.href = '/login';
   };
 
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-gray-100">
+      <div className="min-h-screen flex flex-col">
+        {user && <Header user={user} onLogout={handleLogout} />}
         <main className="flex-grow">
-          { user ? <Header user={user} onLogout={handleLogout} /> : null } 
           <Routes>
-          
             <Route path="/" element={
-              user ? <HomePage /> : <Navigate to="/login" />
+              user ? <ProjectsPage /> : <LandingPage onGetStarted={handleGetStarted} />
             } />
             <Route path="/login" element={
               user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />
             } />
+            <Route path="/profile" element={
+              user ? <ProfilePage /> : <Navigate to="/login" />
+            } />
+            <Route path="/settings" element={
+              user ? <SettingsPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/settings/:section" element={
+              user ? <SettingsPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/messages" element={
+              user ? <MessagesPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/create-project" element={
+              user ? <CreateProjectPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/projects/:projectName" element={
+              user ? <ProjectDetailPage /> : <Navigate to="/login" />
+            } />
+            <Route path="/projects/:projectName/:repoName" element={
+              user ? <RepoPage /> : <Navigate to="/login" />
+            } />
 
+            {/* Legacy routes for backward compatibility */}
             <Route path="/repo/:name" element={
-              user ? <RepoPage/> : <LoginPage onLogin={handleLogin} />
+              user ? <RepoPage/> : <Navigate to="/login" />
             } />
             <Route path="/repo/:name/:branch" element={
-              user ? <RepoPage/> : <LoginPage onLogin={handleLogin} />
+              user ? <RepoPage/> : <Navigate to="/login" />
             } />
  
           </Routes>
