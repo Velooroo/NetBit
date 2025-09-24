@@ -199,29 +199,74 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Contribution Graph Placeholder */}
+                {/* Contribution Graph */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4">
                     {stats.contributions} contributions in the last year
                   </h3>
-                  <div className="bg-gray-50 rounded-lg p-6 text-center">
-                    <div className="grid grid-cols-53 gap-1">
-                      {Array.from({ length: 365 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className={`h-3 w-3 rounded-sm ${
-                            Math.random() > 0.7
-                              ? 'bg-green-500'
-                              : Math.random() > 0.5
-                              ? 'bg-green-300'
-                              : Math.random() > 0.3
-                              ? 'bg-green-200'
-                              : 'bg-gray-200'
-                          }`}
-                        ></div>
-                      ))}
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    {/* Legend */}
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm text-gray-500">Less</span>
+                      <div className="flex items-center space-x-1">
+                        <div className="h-3 w-3 bg-gray-200 rounded-sm"></div>
+                        <div className="h-3 w-3 bg-green-200 rounded-sm"></div>
+                        <div className="h-3 w-3 bg-green-300 rounded-sm"></div>
+                        <div className="h-3 w-3 bg-green-400 rounded-sm"></div>
+                        <div className="h-3 w-3 bg-green-500 rounded-sm"></div>
+                      </div>
+                      <span className="text-sm text-gray-500">More</span>
                     </div>
-                    <p className="text-sm text-gray-500 mt-4">
+                    
+                    {/* Contribution grid - GitHub style with weeks */}
+                    <div className="overflow-x-auto">
+                      <div className="inline-flex flex-col space-y-1">
+                        {/* Day labels */}
+                        <div className="flex space-x-1 mb-2">
+                          <div className="w-3"></div> {/* Spacer for day labels */}
+                          {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, i) => (
+                            <div key={month} className="text-xs text-gray-500 w-8 text-center" style={{ marginLeft: i === 0 ? '0' : '16px' }}>
+                              {month}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Days of week labels + contribution grid */}
+                        <div className="flex">
+                          {/* Day labels */}
+                          <div className="flex flex-col space-y-1 mr-2">
+                            <div className="h-3"></div> {/* Spacer */}
+                            {['', 'Mon', '', 'Wed', '', 'Fri', ''].map((day, i) => (
+                              <div key={i} className="text-xs text-gray-500 h-3 flex items-center">
+                                {day}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Contribution squares - 53 weeks * 7 days */}
+                          <div className="grid grid-rows-7 grid-flow-col gap-1" style={{ gridTemplateColumns: 'repeat(53, 12px)' }}>
+                            {Array.from({ length: 371 }).map((_, i) => {
+                              const intensity = Math.random();
+                              let bgColor = 'bg-gray-200';
+                              if (intensity > 0.8) bgColor = 'bg-green-500';
+                              else if (intensity > 0.6) bgColor = 'bg-green-400';
+                              else if (intensity > 0.4) bgColor = 'bg-green-300';
+                              else if (intensity > 0.2) bgColor = 'bg-green-200';
+                              
+                              return (
+                                <div
+                                  key={i}
+                                  className={`h-3 w-3 rounded-sm ${bgColor} hover:ring-1 hover:ring-gray-400 cursor-pointer transition-all`}
+                                  title={`${Math.floor(intensity * 10)} contributions`}
+                                ></div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-500 mt-4 text-center">
                       Contribution activity over the past year
                     </p>
                   </div>
