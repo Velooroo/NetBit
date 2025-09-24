@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaFacebook, FaGithub } from 'react-icons/fa';
+import { AnimatedBackground, GlassCard, GlassButton, GlassInput } from '../components/ui';
 
 interface LoginFormData {
   username: string;
@@ -104,56 +105,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
-      {/* Animated Gradient Background */}
-      <motion.div 
-        className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-purple-800"
-        animate={{
-          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-        style={{
-          backgroundSize: '300% 300%',
-        }}
-      />
-      
-      {/* Floating particles effect */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(50)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-white rounded-full opacity-30"
-            animate={{
-              x: [Math.random() * window.innerWidth, Math.random() * window.innerWidth],
-              y: [Math.random() * window.innerHeight, Math.random() * window.innerHeight],
-            }}
-            transition={{
-              duration: Math.random() * 20 + 10,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            style={{
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Main Auth Container */}
-      <motion.div
-        ref={formRef}
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-md mx-4"
-      >
-        {/* Glassmorphism Card */}
-        <div className="bg-black/30 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
+    <AnimatedBackground variant="purple" particles={true}>
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <GlassCard className="w-full max-w-md">
           {/* Title */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -220,62 +174,47 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
           {/* Login Form */}
           <motion.form
+            ref={formRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
             className="space-y-4"
             onSubmit={handleSubmit}
           >
-            <div>
-              <motion.input
-                whileFocus={{ scale: 1.02 }}
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="w-full px-4 py-4 bg-slate-700/30 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                placeholder="Username or Email"
-                value={formData.username}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-            </div>
-            
-            <div>
-              <motion.input
-                whileFocus={{ scale: 1.02 }}
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="w-full px-4 py-4 bg-slate-700/30 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
+            <GlassInput
+              id="username"
+              name="username"
+              type="text"
+              required
+              placeholder="Username or Email"
+              value={formData.username}
+              onChange={handleChange}
               disabled={isLoading}
-              className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-purple-500/25 mt-6"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
-                  />
-                  Signing in...
-                </div>
-              ) : (
-                'ВОЙТИ'
-              )}
-            </motion.button>
+            />
+            
+            <GlassInput
+              id="password"
+              name="password"
+              type="password"
+              required
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              disabled={isLoading}
+            />
+
+            <div className="mt-6">
+              <GlassButton
+                type="submit"
+                variant="primary"
+                disabled={isLoading}
+                loading={isLoading}
+                className="w-full"
+                size="lg"
+              >
+                {!isLoading && 'ВОЙТИ'}
+              </GlassButton>
+            </div>
           </motion.form>
 
           {/* Sign Up Link */}
@@ -295,8 +234,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               </Link>
             </p>
           </motion.div>
-        </div>
-      </motion.div>
+        </GlassCard>
+      </div>
 
       <style jsx>{`
         @keyframes shake {
@@ -305,7 +244,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
       `}</style>
-    </div>
+    </AnimatedBackground>
   );
 };
 
