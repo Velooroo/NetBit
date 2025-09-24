@@ -108,6 +108,11 @@ fn configure_routes(cfg: &mut web::ServiceConfig) {
                 .route("/{user}/{project}/config", web::get().to(api::project::get_project_config))
                 .route("/{user}/{project}/config", web::put().to(api::project::update_project_config))
                 .route("/{user}/{project}/repos/create", web::post().to(api::project::create_repo_in_project))
+                .route("/{user}/{project}/{repo}", web::get().to(api::repo::get_repo_in_project))
+                .route("/{user}/{project}/{repo}/contents", web::get().to(api::repo::get_repo_contents))
+                .route("/{user}/{project}/{repo}/commits", web::get().to(api::repo::get_repo_commits))
+                .route("/{user}/{project}/{repo}/branches", web::get().to(api::repo::get_repo_branches))
+                .route("/{user}/{project}/{repo}/readme", web::get().to(api::repo::get_repo_readme))
         )
         // API маршруты для уведомлений
         .service(

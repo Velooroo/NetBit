@@ -1,0 +1,1 @@
+ /Users/macbook/Projects/netbit/packages/mobile/netbit/.dart_tool/flutter_build/1d2da874bfe5b031859738e3cc6bb94a/native_assets.json: 
