@@ -8,6 +8,7 @@ import ProjectsPage from './pages/ProjectsPage';
 import CreateProjectPage from './pages/CreateProjectPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import LandingPage from './pages/LandingPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
@@ -62,6 +63,9 @@ function App() {
             } />
             <Route path="/login" element={
               user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />
+            } />
+            <Route path="/register" element={
+              user ? <Navigate to="/" /> : <RegisterPage onRegister={handleLogin} />
             } />
             <Route path="/profile" element={
               user ? <ProfilePage /> : <Navigate to="/login" />
