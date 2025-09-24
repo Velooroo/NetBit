@@ -84,20 +84,20 @@ const ProjectsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                {filteredProjects.length} of {projects.length} {projects.length === 1 ? 'project' : 'projects'}
+              <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
+              <p className="mt-1 text-sm text-gray-600">
+                {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
               </p>
             </div>
             <Link 
               to="/create-project" 
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
             >
               <FiPlus className="mr-2 h-4 w-4" />
               New
@@ -149,7 +149,7 @@ const ProjectsPage: React.FC = () => {
               <div className="mt-6">
                 <Link
                   to="/create-project"
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                 >
                   <FiPlus className="mr-2 h-4 w-4" />
                   New project
@@ -158,62 +158,60 @@ const ProjectsPage: React.FC = () => {
             )}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="border border-gray-200 rounded-lg divide-y divide-gray-200">
             {filteredProjects.map((project) => (
-              <div key={project.id} className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                <div className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <FiFolder className="h-4 w-4 text-gray-600" />
-                        <Link 
-                          to={`/projects/${project.name}`}
-                          className="text-blue-600 hover:text-blue-800 font-medium text-lg"
-                        >
-                          {project.name}
-                        </Link>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          project.is_public 
-                            ? 'bg-green-100 text-green-800 border border-green-200' 
-                            : 'bg-gray-100 text-gray-800 border border-gray-200'
-                        }`}>
-                          {project.is_public ? (
-                            <>
-                              <FiUnlock className="mr-1 h-3 w-3" />
-                              Public
-                            </>
-                          ) : (
-                            <>
-                              <FiLock className="mr-1 h-3 w-3" />
-                              Private
-                            </>
-                          )}
-                        </span>
-                      </div>
-                      
-                      {project.description && (
-                        <p className="text-gray-600 text-sm mb-3 leading-relaxed">
-                          {project.description}
-                        </p>
-                      )}
-                      
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span className="flex items-center">
-                          <FiStar className="mr-1 h-3 w-3" />
-                          0
-                        </span>
-                        <span className="flex items-center">
-                          <FiGitBranch className="mr-1 h-3 w-3" />
-                          0
-                        </span>
-                        <span>
-                          Updated {new Date(project.created_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                      </div>
+              <div key={project.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <FiFolder className="h-4 w-4 text-gray-500" />
+                      <Link 
+                        to={`/projects/${project.name}`}
+                        className="text-blue-600 hover:text-blue-800 font-semibold text-base hover:underline"
+                      >
+                        {project.name}
+                      </Link>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                        project.is_public 
+                          ? 'bg-green-50 text-green-700 border-green-200' 
+                          : 'bg-orange-50 text-orange-700 border-orange-200'
+                      }`}>
+                        {project.is_public ? (
+                          <>
+                            <FiUnlock className="mr-1 h-3 w-3" />
+                            Public
+                          </>
+                        ) : (
+                          <>
+                            <FiLock className="mr-1 h-3 w-3" />
+                            Private
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    
+                    {project.description && (
+                      <p className="text-gray-700 text-sm mb-3 leading-relaxed">
+                        {project.description}
+                      </p>
+                    )}
+                    
+                    <div className="flex items-center space-x-6 text-xs text-gray-500">
+                      <span className="flex items-center">
+                        <FiStar className="mr-1 h-3 w-3" />
+                        0
+                      </span>
+                      <span className="flex items-center">
+                        <FiGitBranch className="mr-1 h-3 w-3" />
+                        0 repositories
+                      </span>
+                      <span>
+                        Updated {new Date(project.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
                     </div>
                   </div>
                 </div>

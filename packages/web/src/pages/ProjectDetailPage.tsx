@@ -140,134 +140,152 @@ const ProjectDetailPage: React.FC = () => {
   const { project, repositories } = projectDetails;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
+      {/* Header Bar */}
+      <div className="border-b border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/"
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <FiArrowLeft className="mr-1 h-4 w-4" />
+                Back to projects
+              </Link>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Link to="/repositories" className="text-sm text-gray-700 hover:text-gray-900 font-medium">
+                Repositories
+              </Link>
+              <Link to="/profile" className="text-sm text-gray-700 hover:text-gray-900 font-medium">
+                Profile
+              </Link>
+              <Link to="/settings" className="text-sm text-gray-700 hover:text-gray-900 font-medium">
+                Settings
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            to="/"
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
-          >
-            <FiArrowLeft className="mr-2" />
-            Back to projects
-          </Link>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+        {/* Project Header */}
+        <div className="mb-8">          
+          <div className="flex items-start justify-between">
+            <div className="flex items-start">
+              <div className="flex-shrink-0 bg-blue-600 rounded-lg p-3 mr-4">
                 <FiFolder className="h-8 w-8 text-white" />
               </div>
-              <div className="ml-4">
-                <div className="flex items-center">
-                  <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-                  <div className="ml-3">
-                    {project.is_public ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <FiUnlock className="mr-1 h-3 w-3" />
-                        Public
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <FiLock className="mr-1 h-3 w-3" />
-                        Private
-                      </span>
-                    )}
-                  </div>
+              <div>
+                <div className="flex items-center mb-2">
+                  <h1 className="text-2xl font-bold text-gray-900 mr-3">{project.name}</h1>
+                  {project.is_public ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                      <FiUnlock className="mr-1 h-3 w-3" />
+                      Public
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
+                      <FiLock className="mr-1 h-3 w-3" />
+                      Private
+                    </span>
+                  )}
                 </div>
                 {project.description && (
-                  <p className="mt-1 text-sm text-gray-600">{project.description}</p>
+                  <p className="text-gray-600 mb-2 max-w-2xl">{project.description}</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="text-sm text-gray-500">
                   Created {new Date(project.created_at).toLocaleDateString()}
                 </p>
               </div>
             </div>
             
-            <div className="flex space-x-3">
-              <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <FiSettings className="mr-2 h-4 w-4" />
-                Settings
-              </button>
-            </div>
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+              <FiSettings className="mr-2 h-4 w-4" />
+              Settings
+            </button>
           </div>
         </div>
 
         {/* Repositories Section */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+        <div className="bg-white border border-gray-200 rounded-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Repositories ({repositories.length})
               </h3>
               <button
                 onClick={() => setShowCreateRepo(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
-                <FiPlus className="mr-2" />
+                <FiPlus className="mr-2 h-4 w-4" />
                 New Repository
               </button>
             </div>
+          </div>
 
-            {repositories.length === 0 ? (
-              <div className="text-center py-8">
-                <FiGitBranch className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No repositories</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Get started by creating a new repository in this project.
-                </p>
-                <div className="mt-6">
-                  <button
-                    onClick={() => setShowCreateRepo(true)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    <FiPlus className="-ml-1 mr-2 h-5 w-5" />
-                    New Repository
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {repositories.map((repo) => (
-                  <div key={repo.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                    <Link to={`/projects/${project.name}/${repo.name}`} className="block">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <FiGitBranch className="h-5 w-5 text-gray-400 mr-3" />
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900">{repo.name}</h4>
-                            {repo.description && (
-                              <p className="text-sm text-gray-500">{repo.description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <span className="flex items-center">
-                            <FiStar className="mr-1 h-4 w-4" />
-                            0
-                          </span>
-                          <span className="flex items-center">
-                            <FiClock className="mr-1 h-4 w-4" />
-                            {new Date(repo.created_at).toLocaleDateString()}
-                          </span>
+          {repositories.length === 0 ? (
+            <div className="text-center py-12">
+              <FiGitBranch className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-sm font-medium text-gray-900 mb-1">No repositories</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Get started by creating a new repository in this project.
+              </p>
+              <button
+                onClick={() => setShowCreateRepo(true)}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                <FiPlus className="mr-2 h-4 w-4" />
+                New Repository
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {repositories.map((repo) => (
+                <div key={repo.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                  <Link to={`/projects/${project.name}/${repo.name}`} className="block">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center min-w-0">
+                        <FiGitBranch className="h-4 w-4 text-gray-500 mr-3 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <h4 className="text-blue-600 font-medium hover:underline text-sm">
+                            {repo.name}
+                          </h4>
+                          {repo.description && (
+                            <p className="text-sm text-gray-600 mt-1 truncate">
+                              {repo.description}
+                            </p>
+                          )}
                         </div>
                       </div>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                      <div className="flex items-center space-x-6 text-sm text-gray-500 ml-4">
+                        <span className="flex items-center">
+                          <FiStar className="mr-1 h-4 w-4" />
+                          0
+                        </span>
+                        <span className="flex items-center whitespace-nowrap">
+                          <FiClock className="mr-1 h-4 w-4" />
+                          {new Date(repo.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Create Repository Modal */}
         {showCreateRepo && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Repository</h3>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Repository</h3>
                 <form onSubmit={handleCreateRepository} className="space-y-4">
                   <div>
-                    <label htmlFor="repo-name" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="repo-name" className="block text-sm font-medium text-gray-700 mb-1">
                       Repository name
                     </label>
                     <input
@@ -276,12 +294,12 @@ const ProjectDetailPage: React.FC = () => {
                       required
                       value={newRepo.name}
                       onChange={(e) => setNewRepo({ ...newRepo, name: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       placeholder="my-repository"
                     />
                   </div>
                   <div>
-                    <label htmlFor="repo-description" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="repo-description" className="block text-sm font-medium text-gray-700 mb-1">
                       Description (optional)
                     </label>
                     <textarea
@@ -289,21 +307,21 @@ const ProjectDetailPage: React.FC = () => {
                       rows={3}
                       value={newRepo.description}
                       onChange={(e) => setNewRepo({ ...newRepo, description: e.target.value })}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       placeholder="A brief description..."
                     />
                   </div>
                   <div>
                     <fieldset>
-                      <legend className="text-sm font-medium text-gray-700">Visibility</legend>
-                      <div className="mt-2 space-y-2">
+                      <legend className="text-sm font-medium text-gray-700 mb-2">Visibility</legend>
+                      <div className="space-y-2">
                         <label className="flex items-center">
                           <input
                             type="radio"
                             name="repo-visibility"
                             checked={newRepo.is_public}
                             onChange={() => setNewRepo({ ...newRepo, is_public: true })}
-                            className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                            className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
                           />
                           <span className="ml-2 text-sm text-gray-700">Public</span>
                         </label>
@@ -313,25 +331,25 @@ const ProjectDetailPage: React.FC = () => {
                             name="repo-visibility"
                             checked={!newRepo.is_public}
                             onChange={() => setNewRepo({ ...newRepo, is_public: false })}
-                            className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                            className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
                           />
                           <span className="ml-2 text-sm text-gray-700">Private</span>
                         </label>
                       </div>
                     </fieldset>
                   </div>
-                  <div className="flex justify-end space-x-3 pt-4">
+                  <div className="flex justify-end space-x-3 pt-6">
                     <button
                       type="button"
                       onClick={() => setShowCreateRepo(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isCreatingRepo || !newRepo.name}
-                      className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
                     >
                       {isCreatingRepo ? 'Creating...' : 'Create Repository'}
                     </button>
