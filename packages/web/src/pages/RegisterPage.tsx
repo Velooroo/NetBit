@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaFacebook, FaGithub, FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
 import { AnimatedBackground, GlassCard, GlassButton, GlassInput } from '../components/ui';
+import { useWelcome } from '../context/WelcomeContext';
 
 interface RegisterFormData {
   username: string;
@@ -17,6 +18,7 @@ interface RegisterPageProps {
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
   const navigate = useNavigate();
+  const { setShowWelcome, setIsFirstTimeUser } = useWelcome();
   const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
     email: '',
@@ -25,6 +27,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegisterSuccess, setIsRegisterSuccess] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,10 +103,18 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
         // Store user data and auth token
         localStorage.setItem('user', JSON.stringify(data.data.user));
         localStorage.setItem('authToken', data.data.token);
-        // Call the onRegister prop
-        onRegister(data.data.user);
-        // Redirect to home page
-        navigate('/');
+        
+        // Mark as first time user and trigger success animation
+        setIsFirstTimeUser(true);
+        setIsRegisterSuccess(true);
+        
+        // After animation delay, show welcome dialog
+        setTimeout(() => {
+          setShowWelcome(true);
+          // Call the onRegister prop
+          onRegister(data.data.user);
+        }, 800); // Wait for slide animation to complete
+        
       } else {
         setError(data.message || 'Registration failed');
         // Trigger shake animation on error
@@ -143,8 +154,13 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
       <div className="flex items-center justify-center min-h-screen px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.8, rotateY: 90 }}
-          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-          exit={{ opacity: 0, scale: 0.8, rotateY: -90 }}
+          animate={{ 
+            opacity: isRegisterSuccess ? 0 : 1, 
+            scale: isRegisterSuccess ? 0.8 : 1, 
+            rotateY: isRegisterSuccess ? 90 : 0,
+            x: isRegisterSuccess ? '-100%' : 0
+          }}
+          exit={{ opacity: 0, scale: 0.8, rotateY: -90, x: '-100%' }}
           transition={{ 
             duration: 0.8, 
             ease: "easeOut",

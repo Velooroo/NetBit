@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaFacebook, FaGithub, FaUser, FaLock } from 'react-icons/fa';
 import { AnimatedBackground, GlassCard, GlassButton, GlassInput } from '../components/ui';
+import { useWelcome } from '../context/WelcomeContext';
 
 interface LoginFormData {
   username: string;
@@ -15,12 +16,14 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const navigate = useNavigate();
+  const { isFirstTimeUser, setShowWelcome } = useWelcome();
   const [formData, setFormData] = useState<LoginFormData>({
     username: '',
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoginSuccess, setIsLoginSuccess] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,10 +69,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         // Store user data and auth token separately
         localStorage.setItem('user', JSON.stringify(data.data.user));
         localStorage.setItem('authToken', data.data.token);
-        // Call the onLogin prop with just the user data
-        onLogin(data.data.user);
-        // Redirect to home page
-        navigate('/');
+        
+        // Trigger success animation first
+        setIsLoginSuccess(true);
+        
+        // After animation delay, check for welcome dialog
+        setTimeout(() => {
+          if (isFirstTimeUser) {
+            setShowWelcome(true);
+          }
+          // Call the onLogin prop with just the user data
+          onLogin(data.data.user);
+        }, 800); // Wait for slide animation to complete
+        
       } else {
         setError(data.message || 'Login failed');
         // Trigger shake animation on error
@@ -109,8 +121,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       <div className="flex items-center justify-center min-h-screen px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.8, rotateY: -90 }}
-          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-          exit={{ opacity: 0, scale: 0.8, rotateY: 90 }}
+          animate={{ 
+            opacity: isLoginSuccess ? 0 : 1, 
+            scale: isLoginSuccess ? 0.8 : 1, 
+            rotateY: isLoginSuccess ? 90 : 0,
+            x: isLoginSuccess ? '-100%' : 0
+          }}
+          exit={{ opacity: 0, scale: 0.8, rotateY: 90, x: '-100%' }}
           transition={{ 
             duration: 0.8, 
             ease: "easeOut",
