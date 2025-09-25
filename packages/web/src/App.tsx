@@ -10,6 +10,7 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LandingPage from './pages/LandingPage';
+import OSPage from './pages/OSPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import MessagesPage from './pages/MessagesPage';
@@ -60,10 +61,14 @@ function App() {
     <WelcomeProvider>
       <Router>
         <div className="min-h-screen flex flex-col">
-          {user && <Header user={user} onLogout={handleLogout} />}
+          {/* Only show header for non-OS pages */}
+          {user && window.location.pathname !== '/' && <Header user={user} onLogout={handleLogout} />}
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={
+                user ? <OSPage user={user} /> : <OSPage onGetStarted={handleGetStarted} />
+              } />
+              <Route path="/legacy" element={
                 user ? <ProjectsPage /> : <LandingPage onGetStarted={handleGetStarted} />
               } />
               <Route path="/login" element={
@@ -109,8 +114,8 @@ function App() {
             </Routes>
           </main>
           
-          {/* Welcome Dialog */}
-          <WelcomeDialog />
+          {/* Welcome Dialog - only for non-OS pages */}
+          {window.location.pathname !== '/' && <WelcomeDialog />}
         </div>
       </Router>
     </WelcomeProvider>
