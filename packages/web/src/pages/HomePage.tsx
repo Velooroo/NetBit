@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiGitBranch, FiStar, FiClock, FiPlus } from 'react-icons/fi';
+import { FiGitBranch, FiStar, FiClock, FiPlus, FiGithub, FiSettings, FiTrash2, FiEye, FiLock, FiUnlock } from 'react-icons/fi';
 import { FaCodeBranch } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AnimatedBackground, GlassCard, GlassButton } from '../components/ui';
 
 interface Repository {
@@ -13,6 +13,10 @@ interface Repository {
   created_at: string;
   stars_count?: number;
   forks_count?: number;
+  is_private?: boolean;
+  language?: string;
+  size?: string;
+  last_commit?: string;
 }
 
 interface ApiResponse {
@@ -25,6 +29,8 @@ const HomePage: React.FC = () => {
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'public' | 'private'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'updated' | 'stars'>('updated');
 
   useEffect(() => {
     const fetchRepositories = async () => {
@@ -38,11 +44,15 @@ const HomePage: React.FC = () => {
         const data: ApiResponse = await response.json();
         
         if (data.success && data.data) {
-          // Добавляем mock-данные для демонстрации
-          const reposWithStats = data.data.map(repo => ({
+          // Enhanced mock data for demonstration
+          const reposWithStats = data.data.map((repo, index) => ({
             ...repo,
             stars_count: Math.floor(Math.random() * 100),
-            forks_count: Math.floor(Math.random() * 50)
+            forks_count: Math.floor(Math.random() * 50),
+            is_private: Math.random() > 0.7,
+            language: ['JavaScript', 'TypeScript', 'Python', 'Go', 'Rust'][index % 5],
+            size: ['2.4 MB', '15.8 MB', '892 KB', '5.2 MB', '1.1 MB'][index % 5],
+            last_commit: ['2 hours ago', '1 day ago', '3 days ago', '1 week ago', '2 weeks ago'][index % 5]
           }));
           setRepositories(reposWithStats);
         } else {
@@ -59,9 +69,28 @@ const HomePage: React.FC = () => {
     fetchRepositories();
   }, []);
 
+  // Filter and sort repositories
+  const filteredAndSortedRepositories = repositories
+    .filter(repo => {
+      if (filter === 'public') return !repo.is_private;
+      if (filter === 'private') return repo.is_private;
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'stars':
+          return (b.stars_count || 0) - (a.stars_count || 0);
+        case 'updated':
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
   if (loading) {
     return (
-      <AnimatedBackground variant="dark" particles={true} particleCount={30}>
+      <AnimatedBackground variant="dark" particles={true} particleCount={15} reduced={true}>
         <div className="flex justify-center items-center min-h-screen">
           <GlassCard className="text-center">
             <motion.div
@@ -78,16 +107,21 @@ const HomePage: React.FC = () => {
 
   if (error) {
     return (
-      <AnimatedBackground variant="dark" particles={true} particleCount={30}>
+      <AnimatedBackground variant="dark" particles={true} particleCount={15} reduced={true}>
         <div className="min-h-screen flex items-center justify-center px-4">
           <GlassCard className="max-w-md w-full text-center">
             <div className="text-red-400 mb-4">
-              <svg className="h-12 w-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
+              <FiGithub className="h-12 w-12 mx-auto mb-4" />
             </div>
-            <h3 className="text-xl font-medium text-white mb-2">Error fetching repositories</h3>
-            <p className="text-gray-300">{error}</p>
+            <h3 className="text-xl font-medium text-white mb-2">Error loading repositories</h3>
+            <p className="text-gray-300 mb-6">{error}</p>
+            <GlassButton 
+              variant="primary" 
+              onClick={() => window.location.reload()}
+              className="flex items-center mx-auto"
+            >
+              Try Again
+            </GlassButton>
           </GlassCard>
         </div>
       </AnimatedBackground>
@@ -95,128 +129,239 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <AnimatedBackground variant="dark" particles={true} particleCount={30}>
+    <AnimatedBackground variant="dark" particles={true} particleCount={20} reduced={true}>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
-        {/* Header Section */}
+        {/* Enhanced Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex justify-between items-center mb-8"
+          className="mb-8"
         >
-          <div>
-            <h2 className="text-3xl font-bold text-white mb-2">Your Repositories</h2>
-            <p className="text-gray-300">
-              {repositories.length} {repositories.length === 1 ? 'repository' : 'repositories'}
+          <div className="text-center mb-6">
+            <h1 className="text-4xl font-bold text-white mb-2"
+                style={{
+                  filter: 'drop-shadow(0 0 20px rgba(147, 51, 234, 0.8))',
+                  textShadow: '0 0 30px rgba(147, 51, 234, 0.6), 0 0 60px rgba(147, 51, 234, 0.4)',
+                }}>
+              Repository Management
+            </h1>
+            <p className="text-purple-200">
+              Manage and organize your Git repositories
             </p>
           </div>
-          <Link to="/create-repo">
-            <GlassButton variant="primary" size="md" className="flex items-center">
-              <FiPlus className="mr-2" />
-              New Repository
-            </GlassButton>
-          </Link>
+
+          {/* Enhanced Controls */}
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-gray-300">
+                <FiGithub className="h-5 w-5 text-purple-400" />
+                <span className="text-sm">
+                  {filteredAndSortedRepositories.length} {filteredAndSortedRepositories.length === 1 ? 'repository' : 'repositories'}
+                </span>
+              </div>
+            </div>
+
+            {/* Filter and Sort Controls */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-300">Filter:</span>
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as 'all' | 'public' | 'private')}
+                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All</option>
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-300">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'name' | 'updated' | 'stars')}
+                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="updated">Last Updated</option>
+                  <option value="name">Name</option>
+                  <option value="stars">Stars</option>
+                </select>
+              </div>
+
+              <Link to="/create-repo">
+                <GlassButton variant="primary" size="md" className="flex items-center">
+                  <FiPlus className="mr-2" />
+                  New Repository
+                </GlassButton>
+              </Link>
+            </div>
+          </div>
         </motion.div>
 
-        {repositories.length === 0 ? (
+        {filteredAndSortedRepositories.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <GlassCard className="text-center py-12">
-              <svg
-                className="mx-auto h-16 w-16 text-purple-400 mb-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-              <h3 className="text-xl font-medium text-white mb-2">No repositories</h3>
-              <p className="text-gray-300 mb-6">
-                Get started by creating a new repository.
+            <GlassCard className="text-center py-16">
+              <div className="text-purple-400 mb-6">
+                <FiGithub className="h-20 w-20 mx-auto mb-4" />
+              </div>
+              <h3 className="text-2xl font-medium text-white mb-2">No repositories found</h3>
+              <p className="text-gray-300 mb-8">
+                {filter !== 'all' 
+                  ? `No ${filter} repositories match your criteria.` 
+                  : 'Get started by creating your first repository.'}
               </p>
+              {filter !== 'all' ? (
+                <GlassButton 
+                  variant="secondary" 
+                  onClick={() => setFilter('all')}
+                  className="mr-4"
+                >
+                  Show All
+                </GlassButton>
+              ) : null}
               <Link to="/create-repo">
                 <GlassButton variant="primary" size="lg" className="flex items-center mx-auto">
                   <FiPlus className="mr-2 h-5 w-5" />
-                  New Repository
+                  Create Repository
                 </GlassButton>
               </Link>
             </GlassCard>
           </motion.div>
         ) : (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {repositories.map((repo, index) => (
-              <motion.div
-                key={repo.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Link to={`/repo/${repo.name}`} className="block h-full">
-                  <GlassCard 
-                    className="h-full hover:bg-black/40 transition-all duration-200 hover:scale-[1.02] group" 
-                    animate={false}
-                  >
-                    <div className="flex items-start mb-4">
-                      <div className="flex-shrink-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg p-3 group-hover:shadow-lg group-hover:shadow-purple-500/25 transition-all duration-200">
-                        <FiGitBranch className="h-6 w-6 text-white" />
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+            <AnimatePresence>
+              {filteredAndSortedRepositories.map((repo, index) => (
+                <motion.div
+                  key={repo.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.1 }}
+                  layout
+                >
+                  <Link to={`/repo/${repo.name}`} className="block h-full">
+                    <GlassCard 
+                      className="h-full hover:bg-black/40 transition-all duration-200 hover:scale-[1.02] group" 
+                      animate={false}
+                    >
+                      {/* Repository Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg p-3 group-hover:shadow-lg group-hover:shadow-purple-500/25 transition-all duration-200">
+                            <FiGitBranch className="h-6 w-6 text-white" />
+                          </div>
+                          <div className="ml-4 flex-1 min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <h3 className="text-lg font-semibold text-white truncate group-hover:text-purple-300 transition-colors">
+                                {repo.name}
+                              </h3>
+                              <div className="flex-shrink-0">
+                                {repo.is_private ? (
+                                  <FiLock className="h-4 w-4 text-orange-400" title="Private" />
+                                ) : (
+                                  <FiUnlock className="h-4 w-4 text-green-400" title="Public" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="p-2 text-gray-400 hover:text-blue-400 rounded-lg hover:bg-white/10"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              // Handle settings
+                            }}
+                          >
+                            <FiSettings className="h-4 w-4" />
+                          </motion.button>
+                        </div>
                       </div>
-                      <div className="ml-4 flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-white truncate group-hover:text-purple-300 transition-colors">
-                          {repo.name}
-                        </h3>
-                        <p className="text-sm text-gray-400 mt-1 line-clamp-2">
-                          {repo.description || 'No description provided'}
-                        </p>
+
+                      {/* Repository Description */}
+                      <p className="text-sm text-gray-400 mb-4 line-clamp-2 min-h-[2.5rem]">
+                        {repo.description || 'No description provided'}
+                      </p>
+                      
+                      {/* Repository Metadata */}
+                      <div className="space-y-3 mb-4">
+                        {repo.language && (
+                          <div className="flex items-center text-xs text-gray-400">
+                            <div className={`w-3 h-3 rounded-full mr-2 ${
+                              repo.language === 'JavaScript' ? 'bg-yellow-400' :
+                              repo.language === 'TypeScript' ? 'bg-blue-400' :
+                              repo.language === 'Python' ? 'bg-green-400' :
+                              repo.language === 'Go' ? 'bg-cyan-400' :
+                              'bg-orange-400'
+                            }`} />
+                            <span>{repo.language}</span>
+                            {repo.size && (
+                              <>
+                                <span className="mx-2">•</span>
+                                <span>{repo.size}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        
+                        {repo.last_commit && (
+                          <div className="flex items-center text-xs text-gray-400">
+                            <FiClock className="mr-2 h-3 w-3" />
+                            <span>Updated {repo.last_commit}</span>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                      <div className="flex space-x-4">
+                      
+                      {/* Repository Stats */}
+                      <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                        <div className="flex space-x-4">
+                          <span className="inline-flex items-center text-sm text-gray-400">
+                            <FiStar className="mr-1 text-yellow-400" />
+                            {repo.stars_count}
+                          </span>
+                          <span className="inline-flex items-center text-sm text-gray-400">
+                            <FaCodeBranch className="mr-1 text-blue-400" />
+                            {repo.forks_count}
+                          </span>
+                        </div>
                         <span className="inline-flex items-center text-sm text-gray-400">
-                          <FiStar className="mr-1 text-yellow-400" />
-                          {repo.stars_count}
-                        </span>
-                        <span className="inline-flex items-center text-sm text-gray-400">
-                          <FaCodeBranch className="mr-1 text-blue-400" />
-                          {repo.forks_count}
+                          {new Date(repo.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
                         </span>
                       </div>
-                      <span className="inline-flex items-center text-sm text-gray-400">
-                        <FiClock className="mr-1 text-purple-400" />
-                        {new Date(repo.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
-                    </div>
-                  </GlassCard>
-                </Link>
-              </motion.div>
-            ))}
+                    </GlassCard>
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </main>
 
-      {/* Glassmorphism Footer */}
+      {/* Enhanced Glassmorphism Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mt-12 pb-8"
+        className="mt-16 pb-8"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <GlassCard className="text-center" padding="sm">
-            <p className="text-gray-300 text-sm">
-              &copy; {new Date().getFullYear()} NetBit. Made with ❤️ for developers.
+            <p className="text-gray-300 text-sm flex items-center justify-center">
+              <FiGithub className="mr-2 h-4 w-4 text-purple-400" />
+              &copy; {new Date().getFullYear()} NetBit Repository Management. Built for developers.
             </p>
           </GlassCard>
         </div>

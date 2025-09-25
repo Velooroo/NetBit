@@ -59,7 +59,7 @@ const CreateProjectPage: React.FC = () => {
   };
 
   return (
-    <AnimatedBackground variant="purple" particles={true} particleCount={40}>
+    <AnimatedBackground variant="purple" particles={true} particleCount={20} reduced={true}>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
         {/* Enhanced Header */}
         <motion.div

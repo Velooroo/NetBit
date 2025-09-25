@@ -14,6 +14,7 @@ import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import MessagesPage from './pages/MessagesPage';
 import RepoPage from './pages/RepoPage';
+import HomePage from './pages/HomePage';
 import DemoPage from './pages/DemoPage';
 import { WelcomeProvider } from './context/WelcomeContext';
 import WelcomeDialog from './components/ui/WelcomeDialog';
@@ -72,6 +73,9 @@ function App() {
                 user ? <Navigate to="/" /> : <RegisterPage onRegister={handleLogin} />
               } />
               <Route path="/demo" element={<DemoPage />} />
+              <Route path="/repositories" element={
+                user ? <HomePage /> : <Navigate to="/login" />
+              } />
               <Route path="/profile" element={
                 user ? <ProfilePage /> : <Navigate to="/login" />
               } />

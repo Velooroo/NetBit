@@ -109,7 +109,7 @@ const SettingsPage: React.FC = () => {
 
   if (!user) {
     return (
-      <AnimatedBackground variant="purple" particles={true} particleCount={40}>
+      <AnimatedBackground variant="purple" particles={true} particleCount={20} reduced={true}>
         <div className="min-h-screen flex items-center justify-center px-4">
           <GlassCard className="text-center">
             <div className="text-purple-400 mb-4">

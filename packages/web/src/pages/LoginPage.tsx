@@ -117,7 +117,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <AnimatedBackground variant="purple" particles={true} particleCount={60}>
+    <AnimatedBackground variant="purple" particles={true} particleCount={25} reduced={true}>
       <div className="flex items-center justify-center min-h-screen px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.8, rotateY: -90 }}

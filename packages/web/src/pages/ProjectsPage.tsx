@@ -55,7 +55,7 @@ const ProjectsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <AnimatedBackground variant="dark" particles={true} particleCount={30}>
+      <AnimatedBackground variant="dark" particles={true} particleCount={15} reduced={true}>
         <div className="flex justify-center items-center min-h-screen">
           <GlassCard className="text-center">
             <motion.div
@@ -72,7 +72,7 @@ const ProjectsPage: React.FC = () => {
 
   if (error) {
     return (
-      <AnimatedBackground variant="dark" particles={true} particleCount={30}>
+      <AnimatedBackground variant="dark" particles={true} particleCount={15} reduced={true}>
         <div className="min-h-screen flex items-center justify-center px-4">
           <GlassCard className="max-w-md w-full text-center">
             <div className="text-red-400 mb-4">
@@ -89,7 +89,7 @@ const ProjectsPage: React.FC = () => {
   }
 
   return (
-    <AnimatedBackground variant="dark" particles={true} particleCount={30}>
+    <AnimatedBackground variant="dark" particles={true} particleCount={15} reduced={true}>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
         {/* Header Section */}
         <motion.div
