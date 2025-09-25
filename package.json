@@ -28,9 +28,13 @@
   },
   "dependencies": {
 <<<<<<< HEAD
+<<<<<<< HEAD
     "expo": "^54.0.7"
 =======
     "motion": "^12.23.20"
 >>>>>>> copilot/fix-aa58b27c-4d7f-4136-b03d-c7410e7cfd97
+=======
+    "ogl": "^1.0.11"
+>>>>>>> copilot/fix-230ba5fd-4b52-4027-9892-b0bd222e8bfb
   }
 }

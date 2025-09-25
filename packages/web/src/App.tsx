@@ -4,20 +4,7 @@ import './index.css';
 
 // Import components
 import Header from './components/Header';
-import ProjectsPage from './pages/ProjectsPage';
-import CreateProjectPage from './pages/CreateProjectPage';
-import ProjectDetailPage from './pages/ProjectDetailPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import LandingPage from './pages/LandingPage';
-import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
-import MessagesPage from './pages/MessagesPage';
-import RepoPage from './pages/RepoPage';
-import HomePage from './pages/HomePage';
-import DemoPage from './pages/DemoPage';
-import { WelcomeProvider } from './context/WelcomeContext';
-import WelcomeDialog from './components/ui/WelcomeDialog';
+import Hello from './pages/HelloUser';
 
 interface User {
   id: number;
@@ -57,63 +44,25 @@ function App() {
   };
 
   return (
-    <WelcomeProvider>
       <Router>
         <div className="min-h-screen flex flex-col">
-          {user && <Header user={user} onLogout={handleLogout} />}
+          {/* Only show header for non-OS pages */}
+          {user && window.location.pathname !== '/' && <Header user={user} onLogout={handleLogout} />}
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={
-                user ? <ProjectsPage /> : <LandingPage onGetStarted={handleGetStarted} />
+                user ? <Hello user={user} /> : <Hello onGetStarted={handleGetStarted} />
               } />
-              <Route path="/login" element={
-                user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} />
-              } />
-              <Route path="/register" element={
-                user ? <Navigate to="/" /> : <RegisterPage onRegister={handleLogin} />
-              } />
-              <Route path="/demo" element={<DemoPage />} />
-              <Route path="/repositories" element={
-                user ? <HomePage /> : <Navigate to="/login" />
-              } />
-              <Route path="/profile" element={
-                user ? <ProfilePage /> : <Navigate to="/login" />
-              } />
-              <Route path="/settings" element={
-                user ? <SettingsPage /> : <Navigate to="/login" />
-              } />
-              <Route path="/settings/:section" element={
-                user ? <SettingsPage /> : <Navigate to="/login" />
-              } />
-              <Route path="/messages" element={
-                user ? <MessagesPage /> : <Navigate to="/login" />
-              } />
-              <Route path="/create-project" element={
-                user ? <CreateProjectPage /> : <Navigate to="/login" />
-              } />
-              <Route path="/projects/:projectName" element={
-                user ? <ProjectDetailPage /> : <Navigate to="/login" />
-              } />
-              <Route path="/projects/:projectName/:repoName" element={
-                user ? <RepoPage /> : <Navigate to="/login" />
-              } />
-
-              {/* Legacy routes for backward compatibility */}
-              <Route path="/repo/:name" element={
-                user ? <RepoPage/> : <Navigate to="/login" />
-              } />
-              <Route path="/repo/:name/:branch" element={
-                user ? <RepoPage/> : <Navigate to="/login" />
-              } />
- 
+              {/* <Route path="/login" element={
+                user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} /> 
+              } /> */}
             </Routes>
           </main>
           
-          {/* Welcome Dialog */}
-          <WelcomeDialog />
+          {/* Welcome Dialog - only for non-OS pages */}
+          {window.location.pathname !== '/' && <WelcomeDialog />}
         </div>
       </Router>
-    </WelcomeProvider>
   );
 }
 
