@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiFolder, FiStar, FiGitBranch, FiPlus, FiLock, FiUnlock, FiSearch, FiFilter, FiBookOpen } from 'react-icons/fi';
+import { motion } from 'framer-motion';
+import { AnimatedBackground, GlassCard, GlassButton, GlassInput } from '../components/ui';
 import { apiRequest } from '../lib/api';
 
 interface Project {
@@ -53,174 +55,194 @@ const ProjectsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex justify-center items-center min-h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      <AnimatedBackground variant="dark" particles={true} particleCount={15} reduced={true}>
+        <div className="flex justify-center items-center min-h-screen">
+          <GlassCard className="text-center">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 border-4 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"
+            />
+            <p className="text-white text-lg">Loading projects...</p>
+          </GlassCard>
         </div>
-      </div>
+      </AnimatedBackground>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md w-full">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+      <AnimatedBackground variant="dark" particles={true} particleCount={15} reduced={true}>
+        <div className="min-h-screen flex items-center justify-center px-4">
+          <GlassCard className="max-w-md w-full text-center">
+            <div className="text-red-400 mb-4">
+              <svg className="h-12 w-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error loading projects</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
+            <h3 className="text-xl font-medium text-white mb-2">Error loading projects</h3>
+            <p className="text-gray-300">{error}</p>
+          </GlassCard>
         </div>
-      </div>
+      </AnimatedBackground>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AnimatedBackground variant="dark" particles={true} particleCount={15} reduced={true}>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
-              <p className="mt-1 text-sm text-gray-600">
-                {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
-              </p>
-            </div>
-            <Link 
-              to="/create-project" 
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-            >
-              <FiPlus className="mr-2 h-4 w-4" />
-              New
-            </Link>
-          </div>
-
-          {/* Search and Filter Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiSearch className="h-4 w-4 text-gray-400" />
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <GlassCard padding="md">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">Projects</h1>
+                <p className="text-gray-300">
+                  {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
+                </p>
               </div>
-              <input
-                type="text"
-                placeholder="Find a project..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              />
+              <Link to="/create-project">
+                <GlassButton variant="primary" size="md" className="flex items-center">
+                  <FiPlus className="mr-2 h-4 w-4" />
+                  New Project
+                </GlassButton>
+              </Link>
             </div>
-            <div className="flex items-center space-x-2">
-              <FiFilter className="h-4 w-4 text-gray-400" />
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="block pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-              >
-                <option value="all">All</option>
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
+
+            {/* Search and Filter Bar */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <FiSearch className="h-4 w-4 text-gray-400" />
+                </div>
+                <GlassInput
+                  type="text"
+                  placeholder="Find a project..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <FiFilter className="h-4 w-4 text-purple-400" />
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="pl-3 pr-10 py-4 text-white bg-slate-700/30 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="all">All</option>
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+              </div>
             </div>
-          </div>
-        </div>
+          </GlassCard>
+        </motion.div>
 
         {/* Projects List */}
-        {filteredProjects.length === 0 ? (
-          <div className="text-center py-12">
-            <FiBookOpen className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
-              {searchTerm || filterType !== 'all' ? 'No projects found' : 'No projects yet'}
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {searchTerm || filterType !== 'all' 
-                ? 'Try adjusting your search or filter.' 
-                : 'Get started by creating a new project.'}
-            </p>
-            {(!searchTerm && filterType === 'all') && (
-              <div className="mt-6">
-                <Link
-                  to="/create-project"
-                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                >
-                  <FiPlus className="mr-2 h-4 w-4" />
-                  New project
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {filteredProjects.length === 0 ? (
+            <GlassCard className="text-center py-12">
+              <FiBookOpen className="mx-auto h-16 w-16 text-purple-400 mb-6" />
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {searchTerm || filterType !== 'all' ? 'No projects found' : 'No projects yet'}
+              </h3>
+              <p className="text-gray-300 mb-6">
+                {searchTerm || filterType !== 'all' 
+                  ? 'Try adjusting your search or filter.' 
+                  : 'Get started by creating a new project.'}
+              </p>
+              {(!searchTerm && filterType === 'all') && (
+                <Link to="/create-project">
+                  <GlassButton variant="primary" size="lg" className="flex items-center mx-auto">
+                    <FiPlus className="mr-2 h-5 w-5" />
+                    New project
+                  </GlassButton>
                 </Link>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="border border-gray-200 rounded-lg divide-y divide-gray-200">
-            {filteredProjects.map((project) => (
-              <div key={project.id} className="p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <FiFolder className="h-4 w-4 text-gray-500" />
-                      <Link 
-                        to={`/projects/${project.name}`}
-                        className="text-blue-600 hover:text-blue-800 font-semibold text-base hover:underline"
-                      >
-                        {project.name}
-                      </Link>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-                        project.is_public 
-                          ? 'bg-green-50 text-green-700 border-green-200' 
-                          : 'bg-orange-50 text-orange-700 border-orange-200'
-                      }`}>
-                        {project.is_public ? (
-                          <>
-                            <FiUnlock className="mr-1 h-3 w-3" />
-                            Public
-                          </>
-                        ) : (
-                          <>
-                            <FiLock className="mr-1 h-3 w-3" />
-                            Private
-                          </>
+              )}
+            </GlassCard>
+          ) : (
+            <div className="space-y-4">
+              {filteredProjects.map((project, index) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <GlassCard className="hover:bg-black/40 transition-all duration-200 hover:scale-[1.02] group" animate={false}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-2 rounded-lg group-hover:shadow-lg group-hover:shadow-purple-500/25 transition-all duration-200">
+                            <FiFolder className="h-5 w-5 text-white" />
+                          </div>
+                          <Link 
+                            to={`/projects/${project.name}`}
+                            className="text-purple-300 hover:text-purple-200 font-bold text-lg hover:underline transition-colors flex-1"
+                          >
+                            {project.name}
+                          </Link>
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${
+                            project.is_public 
+                              ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                              : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                          }`}>
+                            {project.is_public ? (
+                              <>
+                                <FiUnlock className="mr-1 h-3 w-3" />
+                                Public
+                              </>
+                            ) : (
+                              <>
+                                <FiLock className="mr-1 h-3 w-3" />
+                                Private
+                              </>
+                            )}
+                          </span>
+                        </div>
+                        
+                        {project.description && (
+                          <p className="text-gray-400 text-sm mb-4 leading-relaxed ml-12">
+                            {project.description}
+                          </p>
                         )}
-                      </span>
+                        
+                        <div className="flex items-center space-x-6 text-xs text-gray-400 ml-12 pt-3 border-t border-white/10">
+                          <span className="flex items-center">
+                            <FiStar className="mr-1 h-3 w-3 text-yellow-400" />
+                            0
+                          </span>
+                          <span className="flex items-center">
+                            <FiGitBranch className="mr-1 h-3 w-3 text-blue-400" />
+                            0 repositories
+                          </span>
+                          <span className="flex items-center">
+                            Updated {new Date(project.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    
-                    {project.description && (
-                      <p className="text-gray-700 text-sm mb-3 leading-relaxed">
-                        {project.description}
-                      </p>
-                    )}
-                    
-                    <div className="flex items-center space-x-6 text-xs text-gray-500">
-                      <span className="flex items-center">
-                        <FiStar className="mr-1 h-3 w-3" />
-                        0
-                      </span>
-                      <span className="flex items-center">
-                        <FiGitBranch className="mr-1 h-3 w-3" />
-                        0 repositories
-                      </span>
-                      <span>
-                        Updated {new Date(project.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
       </main>
-    </div>
+    </AnimatedBackground>
   );
 };
 
