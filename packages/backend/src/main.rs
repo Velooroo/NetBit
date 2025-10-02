@@ -11,8 +11,13 @@ mod core;
 mod domain;
 mod api;
 mod utils;
+mod storage;
+mod messaging;
 
 use core::{database::Database, config::load_config, config::validate_config, config::print_config};
+use storage::cache::MessageCache;
+use messaging::{MessagingServer, MessagingConfig};
+use std::sync::Arc;
 
 // ============================================================================
 // ОСНОВНАЯ ФУНКЦИЯ
@@ -59,6 +64,32 @@ async fn main() -> std::io::Result<()> {
         std::process::exit(1);
     }
 
+    // Инициализация кеша
+    println!("Initializing message cache...");
+    let cache = Arc::new(MessageCache::new());
+    
+    // Загрузка данных из БД в кеш
+    if let Err(e) = cache.load_from_db(database.connection.clone()) {
+        eprintln!("Failed to load cache from database: {}", e);
+        std::process::exit(1);
+    }
+    println!("Cache loaded successfully");
+
+    // Запуск messaging сервера (TCP/UDP)
+    let messaging_config = MessagingConfig::default();
+    let messaging_server = MessagingServer::new(
+        messaging_config,
+        cache.clone(),
+        Arc::new(database.clone()),
+    );
+    
+    // Запускаем messaging сервер в фоновой задаче
+    tokio::spawn(async move {
+        if let Err(e) = messaging_server.start().await {
+            eprintln!("Messaging server error: {}", e);
+        }
+    });
+
     let bind_address = format!("{}:{}", config.host, config.port);
     println!("Starting server at http://{}", bind_address);
 
@@ -72,6 +103,7 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(web::Data::new(database.clone()))
+            .app_data(web::Data::new(cache.clone()))
             .wrap(cors)
             .wrap(Logger::default())
             .configure(configure_routes)
