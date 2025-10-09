@@ -29,8 +29,8 @@ pub async fn list_repos(
     db: web::Data<Database>
 ) -> Result<HttpResponse> {
     if let Some(user) = user::check_auth(&req, &db) {
-        let conn = db.get_connection();
-        match Repository::find_by_owner(user.id.unwrap(), conn) {
+        let pool = db.get_pool();
+        match Repository::find_by_owner(user.id.unwrap(), pool) {
             Ok(repos) => {
                 Ok(HttpResponse::Ok().json(ApiResponse {
                     success: true,
@@ -75,9 +75,9 @@ pub async fn create_repo(
 //     db: web::Data<Database>
 // ) -> Result<HttpResponse> {
 //     let repo_name = path.into_inner();
-//     let conn = db.get_connection();
+//     let pool = db.get_pool();
 
-//     match Repository::match Repository::find_by_name(&repo_name, conn) {
+//     match Repository::match Repository::find_by_name(&repo_name, pool) {
 //         Ok(Some(repo)) => {
 //             let repo_path = format!()
 //         }
@@ -93,9 +93,9 @@ pub async fn get_repo(
 ) -> Result<HttpResponse> {
     let repo_name = path.into_inner();
     let branch = query.branch.as_deref().unwrap_or("main");
-    let conn = db.get_connection();
+    let pool = db.get_pool();
 
-    match Repository::find_by_name(&repo_name, conn) {
+    match Repository::find_by_name(&repo_name, pool) {
         Ok(Some(repo)) => {
             // Получаем ветки репозитория
             let repo_path = format!("repositories/{}.git/", repo_name);

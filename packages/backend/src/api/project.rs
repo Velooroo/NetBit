@@ -105,8 +105,8 @@ pub async fn list_projects(req: HttpRequest, db: web::Data<Database>) -> Result<
     }
     let user = user.unwrap();
     
-    let conn = db.get_connection();
-    let projects_result = Project::find_by_owner(user.id.unwrap(), conn);
+    let pool = db.get_pool();
+    let projects_result = Project::find_by_owner(user.id.unwrap(), pool).await;
     
     match projects_result {
         Ok(projects) => {
@@ -125,8 +125,8 @@ pub async fn list_projects(req: HttpRequest, db: web::Data<Database>) -> Result<
 
 /// Получение списка всех публичных проектов
 pub async fn list_public_projects(_req: HttpRequest, db: web::Data<Database>) -> Result<HttpResponse> {
-    let conn = db.get_connection();
-    let projects_result = Project::find_public(conn);
+    let pool = db.get_pool();
+    let projects_result = Project::find_public(conn).await;
     
     match projects_result {
         Ok(projects) => {
@@ -155,10 +155,10 @@ pub async fn create_project(
     }
     let user = user.unwrap();
     
-    let conn = db.get_connection();
+    let pool = db.get_pool();
     
     // Проверяем существование проекта
-    let existing_project = Project::find_by_name_and_owner(&project_req.name, user.id.unwrap(), conn.clone());
+    let existing_project = Project::find_by_name_and_owner(&project_req.name, user.id.unwrap(), pool).await;
     match existing_project {
         Ok(Some(_)) => {
             return Ok(create_bad_request_response("Project with this name already exists"));
@@ -180,7 +180,7 @@ pub async fn create_project(
         created_at: None,
     };
     
-    let create_result = project.create(conn);
+    let create_result = project.create(conn).await;
     match create_result {
         Ok(_) => {
             Ok(HttpResponse::Ok().json(ApiResponse {
@@ -203,10 +203,10 @@ pub async fn get_project(
     db: web::Data<Database>,
 ) -> Result<HttpResponse> {
     let (username, project_name) = path.into_inner();
-    let conn = db.get_connection();
+    let pool = db.get_pool();
 
     // Находим владельца
-    let owner_result = User::find_by_username(&username, conn.clone());
+    let owner_result = User::find_by_username(&username, pool.clone());
     let owner = match owner_result {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_not_found_response("User not found")),
@@ -217,7 +217,7 @@ pub async fn get_project(
     };
 
     // Находим проект
-    let project_result = Project::find_by_name_and_owner(&project_name, owner.id.unwrap(), conn.clone());
+    let project_result = Project::find_by_name_and_owner(&project_name, owner.id.unwrap(), pool).await;
     let project = match project_result {
         Ok(Some(project)) => project,
         Ok(None) => return Ok(create_not_found_response("Project not found")),
@@ -237,8 +237,8 @@ pub async fn get_project(
     }
 
     // Получаем репозитории и конфигурацию
-    let repositories = Repository::find_by_project(project.id.unwrap(), conn.clone()).unwrap_or_else(|_| Vec::new());
-    let config = project.get_config(conn.clone()).unwrap_or_default();
+    let repositories = Repository::find_by_project(project.id.unwrap(), pool).await.unwrap_or_else(|_| Vec::new());
+    let config = project.get_config(conn.clone()).unwrap_or_default().await;
 
     let project_details = ProjectDetails {
         project,
@@ -269,10 +269,10 @@ pub async fn create_repo_in_project(
     }
     let user = user.unwrap();
     
-    let conn = db.get_connection();
+    let pool = db.get_pool();
 
     // Находим владельца проекта
-    let owner_result = User::find_by_username(&username, conn.clone());
+    let owner_result = User::find_by_username(&username, pool.clone());
     let owner = match owner_result {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_not_found_response("User not found")),
@@ -283,7 +283,7 @@ pub async fn create_repo_in_project(
     };
 
     // Находим проект
-    let project_result = Project::find_by_name_and_owner(&project_name, owner.id.unwrap(), conn.clone());
+    let project_result = Project::find_by_name_and_owner(&project_name, owner.id.unwrap(), pool).await;
     let project = match project_result {
         Ok(Some(project)) => project,
         Ok(None) => return Ok(create_not_found_response("Project not found")),
@@ -299,7 +299,7 @@ pub async fn create_repo_in_project(
     }
 
     // Проверяем существование репозитория
-    let existing_repo = Repository::find_by_name_and_project(&repo_req.name, project.id.unwrap(), conn.clone());
+    let existing_repo = Repository::find_by_name_and_project(&repo_req.name, project.id.unwrap(), pool).await;
     match existing_repo {
         Ok(Some(_)) => {
             return Ok(create_bad_request_response("Repository with this name already exists in project"));
@@ -353,10 +353,10 @@ pub async fn update_project_config(
     }
     let user = user.unwrap();
     
-    let conn = db.get_connection();
+    let pool = db.get_pool();
 
     // Находим владельца проекта
-    let owner_result = User::find_by_username(&username, conn.clone());
+    let owner_result = User::find_by_username(&username, pool.clone());
     let owner = match owner_result {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_not_found_response("User not found")),
@@ -367,7 +367,7 @@ pub async fn update_project_config(
     };
 
     // Находим проект
-    let project_result = Project::find_by_name_and_owner(&project_name, owner.id.unwrap(), conn.clone());
+    let project_result = Project::find_by_name_and_owner(&project_name, owner.id.unwrap(), pool).await;
     let project = match project_result {
         Ok(Some(project)) => project,
         Ok(None) => return Ok(create_not_found_response("Project not found")),
@@ -383,7 +383,7 @@ pub async fn update_project_config(
     }
 
     // Сохраняем конфигурацию
-    let update_result = project.update_config(&config_req.config, db.get_connection());
+    let update_result = project.update_config(&config_req.config, db.get_pool()).await;
     match update_result {
         Ok(_) => {
             Ok(HttpResponse::Ok().json(ApiResponse {
@@ -406,10 +406,10 @@ pub async fn get_project_config(
     db: web::Data<Database>,
 ) -> Result<HttpResponse> {
     let (username, project_name) = path.into_inner();
-    let conn = db.get_connection();
+    let pool = db.get_pool();
 
     // Находим владельца
-    let owner_result = User::find_by_username(&username, conn.clone());
+    let owner_result = User::find_by_username(&username, pool.clone());
     let owner = match owner_result {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_not_found_response("User not found")),
@@ -420,7 +420,7 @@ pub async fn get_project_config(
     };
 
     // Находим проект
-    let project_result = Project::find_by_name_and_owner(&project_name, owner.id.unwrap(), conn.clone());
+    let project_result = Project::find_by_name_and_owner(&project_name, owner.id.unwrap(), pool).await;
     let project = match project_result {
         Ok(Some(project)) => project,
         Ok(None) => return Ok(create_not_found_response("Project not found")),
@@ -440,7 +440,7 @@ pub async fn get_project_config(
     }
 
     // Загружаем конфигурацию
-    let config = project.get_config(db.get_connection()).unwrap_or_default();
+    let config = project.get_config(db.get_pool()).unwrap_or_default().await;
 
     Ok(HttpResponse::Ok().json(ApiResponse {
         success: true,

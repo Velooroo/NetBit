@@ -19,8 +19,8 @@ pub struct CreateNotificationRequest {
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================================================
 
-fn check_auth_or_unauthorized(req: &HttpRequest, db: &Database) -> Option<crate::domain::user::User> {
-    user::check_auth(req, db)
+async fn check_auth_or_unauthorized(req: &HttpRequest, db: &Database) -> Option<crate::domain::user::User> {
+    user::check_auth(req, db).await
 }
 
 fn create_unauthorized_response() -> HttpResponse {
@@ -57,7 +57,7 @@ pub async fn create_notification(
     notification_req: web::Json<CreateNotificationRequest>,
     db: web::Data<Database>,
 ) -> Result<HttpResponse> {
-    let user = check_auth_or_unauthorized(&req, &db);
+    let user = check_auth_or_unauthorized(&req, &db).await;
     if user.is_none() {
         return Ok(create_unauthorized_response());
     }
@@ -69,8 +69,8 @@ pub async fn create_notification(
         created_at: None,
     };
 
-    let conn = db.get_connection();
-    let create_result = notification.create(conn);
+    let pool = db.get_pool();
+    let create_result = notification.create(pool).await;
     
     match create_result {
         Ok(id) => Ok(create_success_response("Notification created successfully", id)),
@@ -86,13 +86,13 @@ pub async fn get_notifications(
     req: HttpRequest,
     db: web::Data<Database>,
 ) -> Result<HttpResponse> {
-    let user = check_auth_or_unauthorized(&req, &db);
+    let user = check_auth_or_unauthorized(&req, &db).await;
     if user.is_none() {
         return Ok(create_unauthorized_response());
     }
 
-    let conn = db.get_connection();
-    let notifications_result = Notification::find_all(conn);
+    let pool = db.get_pool();
+    let notifications_result = Notification::find_all(pool).await;
     
     match notifications_result {
         Ok(notifications) => {
@@ -117,13 +117,13 @@ pub async fn delete_notification(
 ) -> Result<HttpResponse> {
     let notification_id = path.into_inner();
     
-    let user = check_auth_or_unauthorized(&req, &db);
+    let user = check_auth_or_unauthorized(&req, &db).await;
     if user.is_none() {
         return Ok(create_unauthorized_response());
     }
 
-    let conn = db.get_connection();
-    let delete_result = Notification::delete(notification_id, conn);
+    let pool = db.get_pool();
+    let delete_result = Notification::delete(notification_id, pool).await;
     
     match delete_result {
         Ok(()) => Ok(create_success_response("Notification deleted successfully", ())),
@@ -143,7 +143,7 @@ pub async fn update_notification(
 ) -> Result<HttpResponse> {
     let notification_id = path.into_inner();
     
-    let user = check_auth_or_unauthorized(&req, &db);
+    let user = check_auth_or_unauthorized(&req, &db).await;
     if user.is_none() {
         return Ok(create_unauthorized_response());
     }
@@ -155,8 +155,8 @@ pub async fn update_notification(
         created_at: None,
     };
 
-    let conn = db.get_connection();
-    let update_result = notification.update(conn);
+    let pool = db.get_pool();
+    let update_result = notification.update(pool).await;
     
     match update_result {
         Ok(()) => Ok(create_success_response("Notification updated successfully", notification)),

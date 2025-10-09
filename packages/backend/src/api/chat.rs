@@ -84,7 +84,7 @@ pub async fn get_chats(
     
     debug!("Получение чатов для пользователя: {}", user_id);
     
-    match Chat::find_by_user(user_id, db.connection.clone()) {
+    match Chat::find_by_user(user_id, db.get_pool()).await {
         Ok(chats) => {
             let chat_responses: Vec<ChatResponse> = chats.into_iter().map(|chat| {
                 let chat_type_str = match chat.chat_type {
@@ -131,7 +131,7 @@ pub async fn get_chat(
     
     debug!("Получение чата: {}", chat_id);
     
-    match Chat::find_by_id(chat_id, db.connection.clone()) {
+    match Chat::find_by_id(chat_id, db.get_pool()).await {
         Ok(Some(chat)) => {
             let chat_type_str = match chat.chat_type {
                 ChatType::Direct => "direct",
@@ -200,12 +200,12 @@ pub async fn create_chat(
         updated_at: None,
     };
     
-    match chat.create(db.connection.clone()) {
+    match chat.create(db.get_pool()).await {
         Ok(chat_id) => {
             // Добавляем участников
             for &participant_id in &req.participants {
                 if participant_id != creator_id {
-                    let _ = chat.add_participant(participant_id, ChatRole::Member, db.connection.clone());
+                    let _ = chat.add_participant(participant_id, ChatRole::Member, db.get_pool()).await;
                 }
             }
             
@@ -311,7 +311,7 @@ pub async fn send_message(
     
     match Message::new(chat_id, sender_id, req.content.clone(), message_type) {
         Ok(message) => {
-            match message.create(db.connection.clone()) {
+            match message.create(db.get_pool()).await {
                 Ok(message_id) => {
                     Ok(HttpResponse::Created().json(ApiResponse {
                         success: true,

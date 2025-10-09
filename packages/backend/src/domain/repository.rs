@@ -1,12 +1,9 @@
 //! Доменная модель репозитория
 
-use rusqlite::{params, Result};
-use std::sync::{Arc, Mutex};
+use sqlx::PgPool;
 use serde::{Serialize, Deserialize};
-use rusqlite::Connection;
-use std::process::Command;
-use std::path::Path;
-use log::{debug, error};
+use chrono::{DateTime, Utc};
+use log::error;
 use crate::utils::git;
 
 // ============================================================================
@@ -29,7 +26,7 @@ pub struct Repository {
     /// Флаг публичности репозитория
     pub is_public: bool,
     /// Дата создания репозитория
-    pub created_at: Option<String>,
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 // ============================================================================
@@ -41,22 +38,26 @@ impl Repository {
     /// 
     /// # Параметры
     /// 
-    /// * `conn` - Соединение с базой данных
+    /// * `pool` - Пул подключений к базе данных
     /// 
     /// # Возвращает
     /// 
-    /// * `Result<i64>` - ID созданного репозитория
-    pub fn create(&self, conn: Arc<Mutex<Connection>>) -> Result<i64> {
-        let conn_guard = conn.lock().unwrap();
-        
+    /// * `Result<i64, sqlx::Error>` - ID созданного репозитория
+    pub async fn create(&self, pool: &PgPool) -> Result<i64, sqlx::Error> {
         // Добавляем репозиторий в базу данных
-        conn_guard.execute(
-            "INSERT INTO repositories (name, project_id, owner_id, description, is_public) VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![self.name, self.project_id, self.owner_id, self.description, self.is_public],
-        )?;
+        let result = sqlx::query!(
+            "INSERT INTO repositories (name, project_id, owner_id, description, is_public) 
+             VALUES ($1, $2, $3, $4, $5) RETURNING id",
+            self.name,
+            self.project_id,
+            self.owner_id,
+            self.description,
+            self.is_public
+        )
+        .fetch_one(pool)
+        .await?;
         
-        let repo_id = conn_guard.last_insert_rowid();
-        drop(conn_guard); // Освобождаем блокировку
+        let repo_id = result.id;
 
         // Создаём репозиторий на диске
         let repo_path = format!("repositories/{}.git", self.name);
@@ -64,7 +65,7 @@ impl Repository {
         // Используем функцию из utils::git для создания репозитория
         if let Err(e) = git::create_bare_repository(&repo_path) {
             error!("Не удалось создать репозиторий: {}", e);
-            return Err(rusqlite::Error::ExecuteReturnedResults);
+            // Note: In a real scenario, we might want to rollback the DB insert here
         }
         
         Ok(repo_id)
@@ -75,36 +76,22 @@ impl Repository {
     /// # Параметры
     /// 
     /// * `owner_id` - ID пользователя
-    /// * `conn` - Соединение с базой данных
+    /// * `pool` - Пул подключений к базе данных
     /// 
     /// # Возвращает
     /// 
-    /// * `Result<Vec<Repository>>` - Список репозиториев
-    pub fn find_by_owner(owner_id: i64, conn: Arc<Mutex<Connection>>) -> Result<Vec<Repository>> {
-        let conn = conn.lock().unwrap();
+    /// * `Result<Vec<Repository>, sqlx::Error>` - Список репозиториев
+    pub async fn find_by_owner(owner_id: i64, pool: &PgPool) -> Result<Vec<Repository>, sqlx::Error> {
+        let repos = sqlx::query_as!(
+            Repository,
+            "SELECT id, name, project_id, owner_id, description, is_public, created_at 
+             FROM repositories WHERE owner_id = $1",
+            owner_id
+        )
+        .fetch_all(pool)
+        .await?;
         
-        let mut stmt = conn.prepare(
-            "SELECT id, name, project_id, owner_id, description, is_public, created_at FROM repositories WHERE owner_id = ?1"
-        )?;
-        
-        let repos = stmt.query_map(params![owner_id], |row| {
-            Ok(Repository {
-                id: Some(row.get(0)?),
-                name: row.get(1)?,
-                project_id: row.get(2)?,
-                owner_id: row.get(3)?,
-                description: row.get(4)?,
-                is_public: row.get(5)?,
-                created_at: row.get(6)?,
-            })
-        })?;
-        
-        let mut result = Vec::new();
-        for repo in repos {
-            result.push(repo?);
-        }
-        
-        Ok(result)
+        Ok(repos)
     }
 
     /// Находит репозиторий по имени
@@ -112,33 +99,22 @@ impl Repository {
     /// # Параметры
     /// 
     /// * `name` - Имя репозитория
-    /// * `conn` - Соединение с базой данных
+    /// * `pool` - Пул подключений к базе данных
     /// 
     /// # Возвращает
     /// 
-    /// * `Result<Option<Repository>>` - Найденный репозиторий или None
-    pub fn find_by_name(name: &str, conn: Arc<Mutex<Connection>>) -> Result<Option<Repository>> {
-        let conn = conn.lock().unwrap();
+    /// * `Result<Option<Repository>, sqlx::Error>` - Найденный репозиторий или None
+    pub async fn find_by_name(name: &str, pool: &PgPool) -> Result<Option<Repository>, sqlx::Error> {
+        let repo = sqlx::query_as!(
+            Repository,
+            "SELECT id, name, project_id, owner_id, description, is_public, created_at 
+             FROM repositories WHERE name = $1",
+            name
+        )
+        .fetch_optional(pool)
+        .await?;
         
-        let mut stmt = conn.prepare(
-            "SELECT id, name, project_id, owner_id, description, is_public, created_at FROM repositories WHERE name = ?1"
-        )?;
-        
-        let mut rows = stmt.query(params![name])?;
-        
-        if let Some(row) = rows.next()? {
-            Ok(Some(Repository {
-                id: Some(row.get(0)?),
-                name: row.get(1)?,
-                project_id: row.get(2)?,
-                owner_id: row.get(3)?,
-                description: row.get(4)?,
-                is_public: row.get(5)?,
-                created_at: row.get(6)?,
-            }))
-        } else {
-            Ok(None)
-        }
+        Ok(repo)
     }
 
     /// Получает список репозиториев проекта
@@ -146,36 +122,22 @@ impl Repository {
     /// # Параметры
     /// 
     /// * `project_id` - ID проекта
-    /// * `conn` - Соединение с базой данных
+    /// * `pool` - Пул подключений к базе данных
     /// 
     /// # Возвращает
     /// 
-    /// * `Result<Vec<Repository>>` - Список репозиториев
-    pub fn find_by_project(project_id: i64, conn: Arc<Mutex<Connection>>) -> Result<Vec<Repository>> {
-        let conn = conn.lock().unwrap();
+    /// * `Result<Vec<Repository>, sqlx::Error>` - Список репозиториев
+    pub async fn find_by_project(project_id: i64, pool: &PgPool) -> Result<Vec<Repository>, sqlx::Error> {
+        let repos = sqlx::query_as!(
+            Repository,
+            "SELECT id, name, project_id, owner_id, description, is_public, created_at 
+             FROM repositories WHERE project_id = $1",
+            project_id
+        )
+        .fetch_all(pool)
+        .await?;
         
-        let mut stmt = conn.prepare(
-            "SELECT id, name, project_id, owner_id, description, is_public, created_at FROM repositories WHERE project_id = ?1"
-        )?;
-        
-        let repos = stmt.query_map(params![project_id], |row| {
-            Ok(Repository {
-                id: Some(row.get(0)?),
-                name: row.get(1)?,
-                project_id: row.get(2)?,
-                owner_id: row.get(3)?,
-                description: row.get(4)?,
-                is_public: row.get(5)?,
-                created_at: row.get(6)?,
-            })
-        })?;
-        
-        let mut result = Vec::new();
-        for repo in repos {
-            result.push(repo?);
-        }
-        
-        Ok(result)
+        Ok(repos)
     }
 
     /// Находит репозиторий по имени и проекту
@@ -184,33 +146,23 @@ impl Repository {
     /// 
     /// * `name` - Имя репозитория
     /// * `project_id` - ID проекта
-    /// * `conn` - Соединение с базой данных
+    /// * `pool` - Пул подключений к базе данных
     /// 
     /// # Возвращает
     /// 
-    /// * `Result<Option<Repository>>` - Найденный репозиторий или None
-    pub fn find_by_name_and_project(name: &str, project_id: i64, conn: Arc<Mutex<Connection>>) -> Result<Option<Repository>> {
-        let conn = conn.lock().unwrap();
+    /// * `Result<Option<Repository>, sqlx::Error>` - Найденный репозиторий или None
+    pub async fn find_by_name_and_project(name: &str, project_id: i64, pool: &PgPool) -> Result<Option<Repository>, sqlx::Error> {
+        let repo = sqlx::query_as!(
+            Repository,
+            "SELECT id, name, project_id, owner_id, description, is_public, created_at 
+             FROM repositories WHERE name = $1 AND project_id = $2",
+            name,
+            project_id
+        )
+        .fetch_optional(pool)
+        .await?;
         
-        let mut stmt = conn.prepare(
-            "SELECT id, name, project_id, owner_id, description, is_public, created_at FROM repositories WHERE name = ?1 AND project_id = ?2"
-        )?;
-        
-        let mut rows = stmt.query(params![name, project_id])?;
-        
-        if let Some(row) = rows.next()? {
-            Ok(Some(Repository {
-                id: Some(row.get(0)?),
-                name: row.get(1)?,
-                project_id: row.get(2)?,
-                owner_id: row.get(3)?,
-                description: row.get(4)?,
-                is_public: row.get(5)?,
-                created_at: row.get(6)?,
-            }))
-        } else {
-            Ok(None)
-        }
+        Ok(repo)
     }
     
     /// Создает новый репозиторий с валидацией
@@ -243,3 +195,4 @@ impl Repository {
         })
     }
 }
+

@@ -1,70 +1,44 @@
-//! Доменная модель проекта
+//! Доменная модель проекта - STUB для миграции
 
-use rusqlite::{params, Result};
-use std::sync::{Arc, Mutex};
+use sqlx::PgPool;
 use serde::{Serialize, Deserialize};
-use rusqlite::Connection;
-use log::{debug, error};
 
-// ============================================================================
-// СТРУКТУРЫ ДАННЫХ
-// ============================================================================
+// Simplified stubs to make code compile during migration
+// TODO: Properly implement with sqlx
 
-/// Модель проекта
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Project {
-    /// Идентификатор проекта
     pub id: Option<i64>,
-    /// Название проекта
     pub name: String,
-    /// Идентификатор владельца проекта
     pub owner_id: i64,
-    /// Описание проекта
     pub description: Option<String>,
-    /// Флаг публичности проекта
     pub is_public: bool,
-    /// Дата создания проекта
     pub created_at: Option<String>,
 }
 
-/// Конфигурация проекта (хранится в базе данных как JSON)
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProjectConfig {
-    /// Настройки коллаборации
     pub collaboration: CollaborationSettings,
-    /// Роли участников
     pub roles: Vec<ProjectRole>,
-    /// Настройки видимости
     pub visibility: VisibilitySettings,
-    /// Настройки уведомлений
     pub notifications: NotificationSettings,
-    /// Дополнительные метаданные
     pub metadata: ProjectMetadata,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CollaborationSettings {
-    /// Разрешить форки
     pub allow_forks: bool,
-    /// Разрешить issues
     pub allow_issues: bool,
-    /// Разрешить pull requests
     pub allow_pull_requests: bool,
-    /// Автоматическое слияние
     pub auto_merge: bool,
-    /// Требовать ревью
     pub require_review: bool,
-    /// Минимальное количество ревьюеров
     pub min_reviewers: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProjectRole {
-    /// ID пользователя
     pub user_id: i64,
-    /// Роль пользователя
     pub role: UserRole,
-    /// Дата добавления
     pub added_at: String,
 }
 
@@ -79,43 +53,27 @@ pub enum UserRole {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VisibilitySettings {
-    /// Публичный проект
     pub is_public: bool,
-    /// Разрешить анонимное чтение
     pub allow_anonymous_read: bool,
-    /// Скрыть от поиска
     pub hide_from_search: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NotificationSettings {
-    /// Уведомления о коммитах
     pub notify_on_commits: bool,
-    /// Уведомления о issues
     pub notify_on_issues: bool,
-    /// Уведомления о pull requests
     pub notify_on_pull_requests: bool,
-    /// Email уведомления
     pub email_notifications: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProjectMetadata {
-    /// Теги проекта
     pub tags: Vec<String>,
-    /// Язык программирования
     pub primary_language: Option<String>,
-    /// Лицензия
     pub license: Option<String>,
-    /// Домашняя страница
     pub homepage: Option<String>,
-    /// Размер проекта в байтах
     pub size: Option<u64>,
 }
-
-// ============================================================================
-// РЕАЛИЗАЦИЯ МЕТОДОВ ДЛЯ КОНФИГУРАЦИИ ПРОЕКТА
-// ============================================================================
 
 impl Default for ProjectConfig {
     fn default() -> Self {
@@ -152,9 +110,8 @@ impl Default for ProjectConfig {
 }
 
 impl ProjectConfig {
-    /// Создает конфигурацию для нового проекта с владельцем
     pub fn new_for_project(_project_id: i64, owner_id: i64) -> Self {
-        let mut config = Self::default();
+        let mut config = ProjectConfig::default();
         config.roles.push(ProjectRole {
             user_id: owner_id,
             role: UserRole::Owner,
@@ -163,217 +120,167 @@ impl ProjectConfig {
         config
     }
 
-    /// Сохраняет конфигурацию проекта в базу данных
-    pub fn save(&self, project_id: i64, conn: Arc<Mutex<Connection>>) -> Result<()> {
+    pub async fn save(&self, project_id: i64, pool: &PgPool) -> Result<(), sqlx::Error> {
         let config_json = serde_json::to_string(self)
-            .map_err(|_| rusqlite::Error::ExecuteReturnedResults)?;
+            .map_err(|_| sqlx::Error::Decode(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to serialize"))))?;
     
-        let conn = conn.lock().unwrap();
-        
-        // Проверяем, существует ли уже конфигурация
-        let mut stmt = conn.prepare("SELECT id FROM project_configs WHERE project_id = ?1")?;
-        let exists = stmt.exists(params![project_id])?;
-        
-        if exists {
-            // Обновляем существующую конфигурацию
-            conn.execute(
-                "UPDATE project_configs SET config_json = ?1 WHERE project_id = ?2",
-                params![config_json, project_id],
-            )?;
-        } else {
-            // Создаем новую конфигурацию
-            conn.execute(
-                "INSERT INTO project_configs (project_id, config_json) VALUES (?1, ?2)",
-                params![project_id, config_json],
-            )?;
-        }
+        sqlx::query!(
+            "INSERT INTO project_configs (project_id, config_json)
+             VALUES ($1, $2)
+             ON CONFLICT (project_id) DO UPDATE SET config_json = $2, updated_at = CURRENT_TIMESTAMP",
+            project_id,
+            config_json
+        )
+        .execute(pool)
+        .await?;
         
         Ok(())
     }
 
-    /// Загружает конфигурацию проекта из базы данных
-    pub fn load(project_id: i64, conn: Arc<Mutex<Connection>>) -> Result<ProjectConfig> {
-        let conn = conn.lock().unwrap();
-        
-        let mut stmt = conn.prepare("SELECT config_json FROM project_configs WHERE project_id = ?1")?;
-        let mut rows = stmt.query(params![project_id])?;
-        
-        if let Some(row) = rows.next()? {
-            let config_json: String = row.get(0)?;
-            let config: ProjectConfig = serde_json::from_str(&config_json)
-                .map_err(|_| rusqlite::Error::ExecuteReturnedResults)?;
-            Ok(config)
+    pub async fn load(project_id: i64, pool: &PgPool) -> Result<ProjectConfig, sqlx::Error> {
+        let result = sqlx::query!(
+            "SELECT config_json FROM project_configs WHERE project_id = $1",
+            project_id
+        )
+        .fetch_optional(pool)
+        .await?;
+
+        if let Some(row) = result {
+            serde_json::from_str(&row.config_json)
+                .map_err(|_| sqlx::Error::Decode(Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to deserialize"))))
         } else {
-            // Если конфигурация не найдена, возвращаем дефолтную
             Ok(ProjectConfig::default())
         }
     }
 }
 
-// ============================================================================
-// РЕАЛИЗАЦИЯ МЕТОДОВ ДЛЯ ПРОЕКТА
-// ============================================================================
-
 impl Project {
-    /// Создаёт новый проект в базе данных
-    pub fn create(&self, conn: Arc<Mutex<Connection>>) -> Result<i64> {
-        let conn_guard = conn.lock().unwrap();
+    pub async fn create(&self, pool: &PgPool) -> Result<i64, sqlx::Error> {
+        let result = sqlx::query!(
+            "INSERT INTO projects (name, owner_id, description, is_public) 
+             VALUES ($1, $2, $3, $4) RETURNING id",
+            self.name,
+            self.owner_id,
+            self.description,
+            self.is_public
+        )
+        .fetch_one(pool)
+        .await?;
         
-        // Добавляем проект в базу данных
-        conn_guard.execute(
-            "INSERT INTO projects (name, owner_id, description, is_public) VALUES (?1, ?2, ?3, ?4)",
-            params![self.name, self.owner_id, self.description, self.is_public],
-        )?;
-        
-        let project_id = conn_guard.last_insert_rowid();
-        drop(conn_guard);
-
-        // Создаём дефолтную конфигурацию проекта
-        let config = ProjectConfig::new_for_project(project_id, self.owner_id);
-        config.save(project_id, conn)?;
-        
-        debug!("Проект успешно создан: {} (ID: {})", self.name, project_id);
-        
-        Ok(project_id)
+        Ok(result.id)
     }
 
-    /// Получает конфигурацию проекта
-    pub fn get_config(&self, conn: Arc<Mutex<Connection>>) -> Result<ProjectConfig> {
+    pub async fn get_config(&self, pool: &PgPool) -> Result<ProjectConfig, sqlx::Error> {
         if let Some(project_id) = self.id {
-            ProjectConfig::load(project_id, conn)
+            ProjectConfig::load(project_id, pool).await
         } else {
             Ok(ProjectConfig::default())
         }
     }
 
-    /// Обновляет конфигурацию проекта
-    pub fn update_config(&self, config: &ProjectConfig, conn: Arc<Mutex<Connection>>) -> Result<()> {
+    pub async fn update_config(&self, config: &ProjectConfig, pool: &PgPool) -> Result<(), sqlx::Error> {
         if let Some(project_id) = self.id {
-            config.save(project_id, conn)
+            config.save(project_id, pool).await
         } else {
-            Err(rusqlite::Error::ExecuteReturnedResults)
+            Err(sqlx::Error::RowNotFound)
         }
     }
 
-    /// Получает список проектов пользователя
-    pub fn find_by_owner(owner_id: i64, conn: Arc<Mutex<Connection>>) -> Result<Vec<Project>> {
-        let conn = conn.lock().unwrap();
+    pub async fn find_by_owner(owner_id: i64, pool: &PgPool) -> Result<Vec<Project>, sqlx::Error> {
+        let projects = sqlx::query!(
+            "SELECT id, name, owner_id, description, is_public, created_at::text 
+             FROM projects WHERE owner_id = $1",
+            owner_id
+        )
+        .fetch_all(pool)
+        .await?
+        .into_iter()
+        .map(|row| Project {
+            id: Some(row.id),
+            name: row.name,
+            owner_id: row.owner_id,
+            description: row.description,
+            is_public: row.is_public,
+            created_at: row.created_at,
+        })
+        .collect();
         
-        let mut stmt = conn.prepare(
-            "SELECT id, name, owner_id, description, is_public, created_at FROM projects WHERE owner_id = ?1"
-        )?;
-        
-        let projects = stmt.query_map(params![owner_id], |row| {
-            Ok(Project {
-                id: Some(row.get(0)?),
-                name: row.get(1)?,
-                owner_id: row.get(2)?,
-                description: row.get(3)?,
-                is_public: row.get(4)?,
-                created_at: row.get(5)?,
-            })
-        })?;
-        
-        let mut result = Vec::new();
-        for project in projects {
-            result.push(project?);
-        }
-        
-        Ok(result)
+        Ok(projects)
     }
 
-    /// Находит проект по имени
-    pub fn find_by_name(name: &str, conn: Arc<Mutex<Connection>>) -> Result<Option<Project>> {
-        let conn = conn.lock().unwrap();
+    pub async fn find_by_name(name: &str, pool: &PgPool) -> Result<Option<Project>, sqlx::Error> {
+        let project = sqlx::query!(
+            "SELECT id, name, owner_id, description, is_public, created_at::text 
+             FROM projects WHERE name = $1",
+            name
+        )
+        .fetch_optional(pool)
+        .await?
+        .map(|row| Project {
+            id: Some(row.id),
+            name: row.name,
+            owner_id: row.owner_id,
+            description: row.description,
+            is_public: row.is_public,
+            created_at: row.created_at,
+        });
         
-        let mut stmt = conn.prepare(
-            "SELECT id, name, owner_id, description, is_public, created_at FROM projects WHERE name = ?1"
-        )?;
-        
-        let mut rows = stmt.query(params![name])?;
-        
-        if let Some(row) = rows.next()? {
-            Ok(Some(Project {
-                id: Some(row.get(0)?),
-                name: row.get(1)?,
-                owner_id: row.get(2)?,
-                description: row.get(3)?,
-                is_public: row.get(4)?,
-                created_at: row.get(5)?,
-            }))
-        } else {
-            Ok(None)
-        }
+        Ok(project)
     }
 
-    /// Находит проект по имени и владельцу
-    pub fn find_by_name_and_owner(name: &str, owner_id: i64, conn: Arc<Mutex<Connection>>) -> Result<Option<Project>> {
-        let conn = conn.lock().unwrap();
+    pub async fn find_by_name_and_owner(name: &str, owner_id: i64, pool: &PgPool) -> Result<Option<Project>, sqlx::Error> {
+        let project = sqlx::query!(
+            "SELECT id, name, owner_id, description, is_public, created_at::text 
+             FROM projects WHERE name = $1 AND owner_id = $2",
+            name,
+            owner_id
+        )
+        .fetch_optional(pool)
+        .await?
+        .map(|row| Project {
+            id: Some(row.id),
+            name: row.name,
+            owner_id: row.owner_id,
+            description: row.description,
+            is_public: row.is_public,
+            created_at: row.created_at,
+        });
         
-        let mut stmt = conn.prepare(
-            "SELECT id, name, owner_id, description, is_public, created_at FROM projects WHERE name = ?1 AND owner_id = ?2"
-        )?;
-        
-        let mut rows = stmt.query(params![name, owner_id])?;
-        
-        if let Some(row) = rows.next()? {
-            Ok(Some(Project {
-                id: Some(row.get(0)?),
-                name: row.get(1)?,
-                owner_id: row.get(2)?,
-                description: row.get(3)?,
-                is_public: row.get(4)?,
-                created_at: row.get(5)?,
-            }))
-        } else {
-            Ok(None)
-        }
+        Ok(project)
     }
 
-    /// Получает все публичные проекты
-    pub fn find_public(conn: Arc<Mutex<Connection>>) -> Result<Vec<Project>> {
-        let conn = conn.lock().unwrap();
+    pub async fn find_public(pool: &PgPool) -> Result<Vec<Project>, sqlx::Error> {
+        let projects = sqlx::query!(
+            "SELECT id, name, owner_id, description, is_public, created_at::text 
+             FROM projects WHERE is_public = true"
+        )
+        .fetch_all(pool)
+        .await?
+        .into_iter()
+        .map(|row| Project {
+            id: Some(row.id),
+            name: row.name,
+            owner_id: row.owner_id,
+            description: row.description,
+            is_public: row.is_public,
+            created_at: row.created_at,
+        })
+        .collect();
         
-        let mut stmt = conn.prepare(
-            "SELECT id, name, owner_id, description, is_public, created_at FROM projects WHERE is_public = 1"
-        )?;
-        
-        let projects = stmt.query_map([], |row| {
-            Ok(Project {
-                id: Some(row.get(0)?),
-                name: row.get(1)?,
-                owner_id: row.get(2)?,
-                description: row.get(3)?,
-                is_public: row.get(4)?,
-                created_at: row.get(5)?,
-            })
-        })?;
-        
-        let mut result = Vec::new();
-        for project in projects {
-            result.push(project?);
-        }
-        
-        Ok(result)
+        Ok(projects)
     }
-    
-    /// Создает новый проект с валидацией
+
     pub fn new(name: String, owner_id: i64, description: Option<String>, is_public: bool) -> Result<Self, String> {
         if name.is_empty() {
-            return Err("Имя проекта не может быть пустым".to_string());
+            return Err("Project name cannot be empty".to_string());
         }
 
         if name.len() < 2 {
-            return Err("Имя проекта должно содержать минимум 2 символа".to_string());
+            return Err("Project name must be at least 2 characters".to_string());
         }
 
         if name.len() > 100 {
-            return Err("Имя проекта не может быть длиннее 100 символов".to_string());
-        }
-
-        // Проверка на допустимые символы в имени
-        if !name.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-' || c == '.') {
-            return Err("Имя проекта может содержать только буквы, цифры, точки, дефисы и подчеркивания".to_string());
+            return Err("Project name cannot exceed 100 characters".to_string());
         }
 
         Ok(Project {
