@@ -28,9 +28,9 @@ pub async fn list_repos(
     req: HttpRequest, 
     db: web::Data<Database>
 ) -> Result<HttpResponse> {
-    if let Some(user) = user::check_auth(&req, &db) {
+    if let Some(user) = user::check_auth(&req, &db).await {
         let pool = db.get_pool();
-        match Repository::find_by_owner(user.id.unwrap(), pool) {
+        match Repository::find_by_owner(user.id.unwrap(), pool).await {
             Ok(repos) => {
                 Ok(HttpResponse::Ok().json(ApiResponse {
                     success: true,

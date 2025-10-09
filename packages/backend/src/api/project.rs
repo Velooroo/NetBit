@@ -206,8 +206,7 @@ pub async fn get_project(
     let pool = db.get_pool();
 
     // Находим владельца
-    let owner_result = User::find_by_username(&username, pool.clone());
-    let owner = match owner_result {
+    let owner = match User::find_by_username(&username, pool).await {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_not_found_response("User not found")),
         Err(e) => {
@@ -272,8 +271,7 @@ pub async fn create_repo_in_project(
     let pool = db.get_pool();
 
     // Находим владельца проекта
-    let owner_result = User::find_by_username(&username, pool.clone());
-    let owner = match owner_result {
+    let owner = match User::find_by_username(&username, pool).await {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_not_found_response("User not found")),
         Err(e) => {
@@ -322,7 +320,7 @@ pub async fn create_repo_in_project(
         created_at: None,
     };
     
-    let create_result = repo.create(pool);
+    let create_result = repo.create(pool).await;
     match create_result {
         Ok(_) => {
             Ok(HttpResponse::Ok().json(ApiResponse {
@@ -356,8 +354,7 @@ pub async fn update_project_config(
     let pool = db.get_pool();
 
     // Находим владельца проекта
-    let owner_result = User::find_by_username(&username, pool.clone());
-    let owner = match owner_result {
+    let owner = match User::find_by_username(&username, pool).await {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_not_found_response("User not found")),
         Err(e) => {
@@ -409,8 +406,7 @@ pub async fn get_project_config(
     let pool = db.get_pool();
 
     // Находим владельца
-    let owner_result = User::find_by_username(&username, pool.clone());
-    let owner = match owner_result {
+    let owner = match User::find_by_username(&username, pool).await {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_not_found_response("User not found")),
         Err(e) => {

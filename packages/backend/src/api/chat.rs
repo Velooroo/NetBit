@@ -263,15 +263,17 @@ pub async fn get_messages(
             }).collect();
             
             // TODO: Получить общее количество сообщений для пагинации
+            let page_u32 = page.unwrap_or(1) as u32;
+            let per_page_u32 = per_page.unwrap_or(50) as u32;
             let total = message_responses.len() as u32;
-            let total_pages = (total + per_page - 1) / per_page;
+            let total_pages = (total + per_page_u32 - 1) / per_page_u32;
             
             Ok(HttpResponse::Ok().json(PaginatedResponse {
                 success: true,
                 data: message_responses,
                 pagination: PaginationInfo {
-                    page,
-                    per_page,
+                    page: page_u32,
+                    per_page: per_page_u32,
                     total,
                     total_pages,
                 },
