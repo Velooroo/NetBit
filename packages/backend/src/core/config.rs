@@ -9,7 +9,7 @@ use crate::core::types::ServerConfig;
 
 const DEFAULT_HOST: &str = "0.0.0.0";
 const DEFAULT_PORT: u16 = 8000;
-const DEFAULT_DATABASE_URL: &str = "gitea.db";
+const DEFAULT_DATABASE_URL: &str = "postgresql://postgres:postgres@localhost/netbit";
 const DEFAULT_JWT_SECRET: &str = "your-secret-key-change-in-production";
 const DEFAULT_REPOSITORIES_PATH: &str = "repositories";
 
@@ -86,7 +86,7 @@ pub fn test_config() -> ServerConfig {
     ServerConfig {
         host: "127.0.0.1".to_string(),
         port: 0, // Случайный порт для тестов
-        database_url: ":memory:".to_string(), // В памяти для тестов
+        database_url: "postgresql://postgres:postgres@localhost/netbit_test".to_string(),
         jwt_secret: "test-secret-key".to_string(),
         repositories_path: "test_repositories".to_string(),
     }

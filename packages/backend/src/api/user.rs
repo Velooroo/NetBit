@@ -108,12 +108,12 @@ fn extract_bearer_token(req: &HttpRequest) -> Option<String> {
 // ============================================================================
 
 /// Проверка аутентификации пользователя (JWT или Basic Auth)
-pub fn check_auth(req: &HttpRequest, db: &Database) -> Option<User> {
+pub async fn check_auth(req: &HttpRequest, db: &Database) -> Option<User> {
     // Сначала пробуем JWT токен
     if let Some(token) = extract_bearer_token(req) {
         if let Ok(claims) = Claims::from_token(&token) {
-            let conn = db.get_connection();
-            if let Ok(Some(user)) = User::find_by_id(claims.user_id, conn) {
+            let pool = db.get_pool();
+            if let Ok(Some(user)) = User::find_by_id(claims.user_id, pool).await {
                 return Some(user);
             }
         }
@@ -121,8 +121,8 @@ pub fn check_auth(req: &HttpRequest, db: &Database) -> Option<User> {
     
     // Если JWT не сработал, пробуем Basic Auth для обратной совместимости
     if let Some((username, password)) = extract_basic_auth(req) {
-        let conn = db.get_connection();
-        if let Ok(Some(user)) = User::authenticate(&username, &password, conn) {
+        let pool = db.get_pool();
+        if let Ok(Some(user)) = User::authenticate(&username, &password, pool).await {
             return Some(user);
         }
     }
@@ -139,11 +139,10 @@ pub async fn login(
     login_req: web::Json<LoginRequest>,
     db: web::Data<Database>
 ) -> Result<HttpResponse> {
-    let conn = db.get_connection();
+    let pool = db.get_pool();
     
-    // Находим пользователя
-    let user_result = User::find_by_username(&login_req.username, conn);
-    let user = match user_result {
+    // Находим пользователя и проверяем пароль
+    let user = match User::authenticate(&login_req.username, &login_req.password, pool).await {
         Ok(Some(user)) => user,
         Ok(None) => return Ok(create_bad_request_response("Invalid username or password")),
         Err(e) => {
@@ -151,11 +150,6 @@ pub async fn login(
             return Ok(create_error_response("Database error"));
         }
     };
-    
-    // Проверяем пароль (простое сравнение, в реальном проекте нужно хэширование)
-    if user.password != login_req.password {
-        return Ok(create_bad_request_response("Invalid username or password"));
-    }
     
     // Генерируем JWT токен
     let token_result = generate_token_for_user(&user);
@@ -176,11 +170,10 @@ pub async fn register(
     register_req: web::Json<RegisterRequest>,
     db: web::Data<Database>
 ) -> Result<HttpResponse> {
-    let conn = db.get_connection();
+    let pool = db.get_pool();
     
     // Проверяем, что пользователь не существует
-    let existing_user = User::find_by_username(&register_req.username, conn.clone());
-    match existing_user {
+    match User::find_by_username(&register_req.username, pool).await {
         Ok(Some(_)) => return Ok(create_bad_request_response("Username already exists")),
         Err(e) => {
             error!("Database error during registration check: {}", e);
@@ -189,18 +182,18 @@ pub async fn register(
         _ => {}
     }
     
-    // Создаем нового пользователя
-    let user = User {
-        id: None,
-        username: register_req.username.clone(),
-        email: Some(register_req.email.clone()),
-        password: register_req.password.clone(), // В реальном проекте нужно хэширование
-        created_at: None,
+    // Создаем нового пользователя с хэшированным паролем
+    let user = match User::new(
+        register_req.username.clone(),
+        register_req.password.clone(),
+        Some(register_req.email.clone())
+    ) {
+        Ok(user) => user,
+        Err(e) => return Ok(create_bad_request_response(&e)),
     };
     
     // Сохраняем в базу данных
-    let create_result = user.create(conn);
-    match create_result {
+    match user.create(pool).await {
         Ok(_) => Ok(create_success_response("User registered successfully", user)),
         Err(e) => {
             error!("Failed to create user: {}", e);
@@ -214,7 +207,7 @@ pub async fn user_profile(
     req: HttpRequest,
     db: web::Data<Database>
 ) -> Result<HttpResponse> {
-    let user = check_auth(&req, &db);
+    let user = check_auth(&req, &db).await;
     
     match user {
         Some(user) => {

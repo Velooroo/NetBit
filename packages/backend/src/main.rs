@@ -45,7 +45,7 @@ async fn main() -> std::io::Result<()> {
     print_config(&config);
 
     // Инициализация базы данных
-    let database = match Database::new(&config.database_url) {
+    let database = match Database::new(&config.database_url).await {
         Ok(db) => {
             println!("Database connected successfully");
             db
@@ -56,8 +56,15 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    // Выполнение миграций
+    if let Err(e) = database.run_migrations().await {
+        eprintln!("Failed to run migrations: {}", e);
+        std::process::exit(1);
+    }
+    println!("Database migrations completed successfully");
+
     // Тест подключения к базе данных
-    if let Err(e) = database.test_connection() {
+    if let Err(e) = database.test_connection().await {
         eprintln!("Database connection test failed: {}", e);
         std::process::exit(1);
     }

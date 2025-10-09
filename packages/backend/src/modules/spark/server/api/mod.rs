@@ -1,5 +1,4 @@
 use actix_web::{HttpResponse};
-use rusqlite::;
 
 struct Package {
     id: i32,
@@ -12,6 +11,5 @@ pub async fn health() -> HttpResponse {
 }
 
 pub async fn package_check() -> HttpResponse {
-    HttpResponse::Ok()
-        .body()
+    HttpResponse::Ok().body("Package check OK!")
 } 

@@ -1,10 +1,9 @@
 //! Доменная модель пользователя
 
-use rusqlite::{params, Result};
-use std::sync::{Arc, Mutex};
+use sqlx::PgPool;
 use serde::{Serialize, Deserialize};
-use chrono::{DateTime, Utc, NaiveDateTime};
-use rusqlite::Connection;
+use chrono::{DateTime, Utc};
+use bcrypt::{hash, verify, DEFAULT_COST};
 
 // ============================================================================
 // СТРУКТУРЫ ДАННЫХ
@@ -19,7 +18,7 @@ pub struct User {
     pub username: String,
     /// Пароль пользователя (в хэшированном виде)
     #[serde(skip_serializing)]
-    pub password: String,
+    pub password_hash: String,
     /// Электронная почта пользователя
     pub email: Option<String>,
     /// Дата создания пользователя
@@ -32,45 +31,39 @@ pub struct User {
 
 impl User {
     /// Создаёт нового пользователя в базе данных
-    pub fn create(&self, conn: Arc<Mutex<Connection>>) -> Result<i64> {
-        let conn = conn.lock().unwrap();
+    pub async fn create(&self, pool: &PgPool) -> Result<i64, sqlx::Error> {
+        let result = sqlx::query!(
+            "INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3) RETURNING id",
+            self.username,
+            self.password_hash,
+            self.email
+        )
+        .fetch_one(pool)
+        .await?;
         
-        conn.execute(
-            "INSERT INTO users (username, password, email) VALUES (?1, ?2, ?3)",
-            params![self.username, self.password, self.email],
-        )?;
-        
-        Ok(conn.last_insert_rowid())
+        Ok(result.id)
     }
 
     /// Находит пользователя по имени пользователя
-    pub fn find_by_username(username: &str, conn: Arc<Mutex<Connection>>) -> Result<Option<User>> {
-        let conn = conn.lock().map_err(|_| rusqlite::Error::InvalidQuery)?;        
-
-        let mut stmt = conn.prepare("SELECT id, username, password, email, created_at FROM users WHERE username = ?1")?;
-        let mut rows = stmt.query(params![username])?;
+    pub async fn find_by_username(username: &str, pool: &PgPool) -> Result<Option<User>, sqlx::Error> {
+        let user = sqlx::query_as!(
+            User,
+            "SELECT id, username, password_hash, email, created_at FROM users WHERE username = $1",
+            username
+        )
+        .fetch_optional(pool)
+        .await?;
         
-        if let Some(row) = rows.next()? {
-            let created_at = Self::parse_datetime(row.get(4).ok());
-            
-            Ok(Some(User {
-                id: Some(row.get(0)?),
-                username: row.get(1)?,
-                password: row.get(2)?,
-                email: row.get(3)?,
-                created_at,
-            }))
-        } else {
-            Ok(None)
-        }
+        Ok(user)
     }
 
     /// Проверяет учетные данные пользователя
-    pub fn authenticate(username: &str, password: &str, conn: Arc<Mutex<Connection>>) -> Result<Option<User>> {
-        let user = Self::find_by_username(username, conn)?;
+    pub async fn authenticate(username: &str, password: &str, pool: &PgPool) -> Result<Option<User>, sqlx::Error> {
+        let user = Self::find_by_username(username, pool).await?;
         
         if let Some(user) = user {
-            if user.password == password {
+            // Verify the password hash
+            if verify(password, &user.password_hash).unwrap_or(false) {
                 return Ok(Some(user));
             }
         }
@@ -79,128 +72,88 @@ impl User {
     }
 
     /// Находит пользователя по ID
-    pub fn find_by_id(user_id: i64, conn: Arc<Mutex<Connection>>) -> Result<Option<User>> {
-        let conn = conn.lock().map_err(|_| rusqlite::Error::InvalidQuery)?;        
-
-        let mut stmt = conn.prepare("SELECT id, username, password, email, created_at FROM users WHERE id = ?1")?;
-        let mut rows = stmt.query(params![user_id])?;
+    pub async fn find_by_id(user_id: i64, pool: &PgPool) -> Result<Option<User>, sqlx::Error> {
+        let user = sqlx::query_as!(
+            User,
+            "SELECT id, username, password_hash, email, created_at FROM users WHERE id = $1",
+            user_id
+        )
+        .fetch_optional(pool)
+        .await?;
         
-        if let Some(row) = rows.next()? {
-            let created_at = Self::parse_datetime(row.get(4).ok());
-            
-            Ok(Some(User {
-                id: Some(row.get(0)?),
-                username: row.get(1)?,
-                password: row.get(2)?,
-                email: row.get(3)?,
-                created_at,
-            }))
-        } else {
-            Ok(None)
-        }
+        Ok(user)
     }
 
     /// Обновляет данные пользователя
-    pub fn update(&self, conn: Arc<Mutex<Connection>>) -> Result<()> {
-        let conn = conn.lock().unwrap();
-
+    pub async fn update(&self, pool: &PgPool) -> Result<(), sqlx::Error> {
         if let Some(id) = self.id {
-            conn.execute(
-                "UPDATE users SET username = ?1, password = ?2, email = ?3 WHERE id = ?4",
-                params![self.username, self.password, self.email, id]
-            )?;
+            sqlx::query!(
+                "UPDATE users SET username = $1, password_hash = $2, email = $3 WHERE id = $4",
+                self.username,
+                self.password_hash,
+                self.email,
+                id
+            )
+            .execute(pool)
+            .await?;
         }
 
         Ok(())
     }
 
     /// Удаляет пользователя по ID
-    pub fn delete(user_id: i64, conn: Arc<Mutex<Connection>>) -> Result<()> {
-        let conn = conn.lock().unwrap();
-
-        conn.execute(
-            "DELETE FROM users WHERE id = ?1",
-            params![user_id]
-        )?;
+    pub async fn delete(user_id: i64, pool: &PgPool) -> Result<(), sqlx::Error> {
+        sqlx::query!(
+            "DELETE FROM users WHERE id = $1",
+            user_id
+        )
+        .execute(pool)
+        .await?;
 
         Ok(())
     }
 
     /// Получает всех пользователей
-    pub fn find_all(conn: Arc<Mutex<Connection>>) -> Result<Vec<User>> {
-        let conn = conn.lock().unwrap();
+    pub async fn find_all(pool: &PgPool) -> Result<Vec<User>, sqlx::Error> {
+        let users = sqlx::query_as!(
+            User,
+            "SELECT id, username, password_hash, email, created_at FROM users ORDER BY created_at DESC"
+        )
+        .fetch_all(pool)
+        .await?;
 
-        let mut stmt = conn.prepare(
-            "SELECT id, username, password, email, created_at FROM users ORDER BY created_at DESC"
-        )?;
-
-        let users = stmt.query_map([], |row| {
-            let created_at = Self::parse_datetime(row.get(4).ok());
-            
-            Ok(User {
-                id: Some(row.get(0)?),
-                username: row.get(1)?,
-                password: row.get(2)?,
-                email: row.get(3)?,
-                created_at,
-            })
-        })?;
-
-        let mut result = Vec::new();
-        for user in users {
-            result.push(user?);
-        }
-
-        Ok(result)
+        Ok(users)
     }
 
     /// Проверяет существование пользователя с данным именем
-    pub fn exists_by_username(username: &str, conn: Arc<Mutex<Connection>>) -> Result<bool> {
-        let conn = conn.lock().unwrap();
+    pub async fn exists_by_username(username: &str, pool: &PgPool) -> Result<bool, sqlx::Error> {
+        let result = sqlx::query!(
+            "SELECT COUNT(*) as count FROM users WHERE username = $1",
+            username
+        )
+        .fetch_one(pool)
+        .await?;
 
-        let mut stmt = conn.prepare("SELECT COUNT(*) FROM users WHERE username = ?1")?;
-        let count: i64 = stmt.query_row(params![username], |row| row.get(0))?;
-
-        Ok(count > 0)
+        Ok(result.count.unwrap_or(0) > 0)
     }
 
     /// Проверяет существование пользователя с данным email
-    pub fn exists_by_email(email: &str, conn: Arc<Mutex<Connection>>) -> Result<bool> {
-        let conn = conn.lock().unwrap();
+    pub async fn exists_by_email(email: &str, pool: &PgPool) -> Result<bool, sqlx::Error> {
+        let result = sqlx::query!(
+            "SELECT COUNT(*) as count FROM users WHERE email = $1",
+            email
+        )
+        .fetch_one(pool)
+        .await?;
 
-        let mut stmt = conn.prepare("SELECT COUNT(*) FROM users WHERE email = ?1")?;
-        let count: i64 = stmt.query_row(params![email], |row| row.get(0))?;
-
-        Ok(count > 0)
+        Ok(result.count.unwrap_or(0) > 0)
     }
 
     // ========================================================================
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
     // ========================================================================
 
-    /// Парсит дату из строки в различных форматах
-    fn parse_datetime(datetime_str: Option<String>) -> Option<DateTime<Utc>> {
-        if let Some(datetime_str) = datetime_str {
-            // Пробуем разные форматы даты
-            if let Ok(dt) = DateTime::parse_from_rfc3339(&datetime_str) {
-                Some(dt.with_timezone(&Utc))
-            } else {
-                // Если формат не RFC3339, возможно это формат SQLite (YYYY-MM-DD HH:MM:SS)
-                let naive = NaiveDateTime::parse_from_str(&datetime_str, "%Y-%m-%d %H:%M:%S")
-                    .or_else(|_| NaiveDateTime::parse_from_str(&datetime_str, "%Y-%m-%dT%H:%M:%S"));
-                
-                if let Ok(ndt) = naive {
-                    Some(DateTime::<Utc>::from_naive_utc_and_offset(ndt, Utc))
-                } else {
-                    None
-                }
-            }
-        } else {
-            None
-        }
-    }
-
-    /// Создает нового пользователя с валидацией
+    /// Создает нового пользователя с валидацией и хэшированием пароля
     pub fn new(username: String, password: String, email: Option<String>) -> Result<Self, String> {
         if username.is_empty() {
             return Err("Username cannot be empty".to_string());
@@ -218,10 +171,14 @@ impl User {
             return Err("Password must be at least 6 characters long".to_string());
         }
 
+        // Hash the password
+        let password_hash = hash(password, DEFAULT_COST)
+            .map_err(|_| "Failed to hash password".to_string())?;
+
         Ok(User {
             id: None,
             username,
-            password, // В реальном проекте здесь должно быть хэширование
+            password_hash,
             email,
             created_at: None,
         })

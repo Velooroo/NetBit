@@ -9,7 +9,7 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .service(
             web::scope("/api/spark")
                 .route("/health", web::get().to(api::health))
-        );
+        )
         // API маршруты для проверки пакетов
         .service(
             web::scope("/api/spark/package")
