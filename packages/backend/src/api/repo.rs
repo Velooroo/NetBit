@@ -77,7 +77,7 @@ pub async fn create_repo(
 //     let repo_name = path.into_inner();
 //     let pool = db.get_pool();
 
-//     match Repository::match Repository::find_by_name(&repo_name, pool) {
+//     match Repository::match Repository::find_by_name(&repo_name, pool).await {
 //         Ok(Some(repo)) => {
 //             let repo_path = format!()
 //         }
@@ -95,7 +95,7 @@ pub async fn get_repo(
     let branch = query.branch.as_deref().unwrap_or("main");
     let pool = db.get_pool();
 
-    match Repository::find_by_name(&repo_name, pool) {
+    match Repository::find_by_name(&repo_name, pool).await {
         Ok(Some(repo)) => {
             // Получаем ветки репозитория
             let repo_path = format!("repositories/{}.git/", repo_name);

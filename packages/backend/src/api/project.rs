@@ -49,8 +49,8 @@ pub struct ProjectDetails {
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================================================
 
-fn check_auth_or_unauthorized(req: &HttpRequest, db: &Database) -> Option<User> {
-    user::check_auth(req, db)
+async fn check_auth_or_unauthorized(req: &HttpRequest, db: &Database) -> Option<User> {
+    user::check_auth(req, db).await
 }
 
 fn create_unauthorized_response() -> HttpResponse {
@@ -99,7 +99,7 @@ fn create_forbidden_response(message: &str) -> HttpResponse {
 
 /// Получение списка проектов пользователя
 pub async fn list_projects(req: HttpRequest, db: web::Data<Database>) -> Result<HttpResponse> {
-    let user = check_auth_or_unauthorized(&req, &db);
+    let user = check_auth_or_unauthorized(&req, &db).await;
     if user.is_none() {
         return Ok(create_unauthorized_response());
     }
@@ -126,7 +126,7 @@ pub async fn list_projects(req: HttpRequest, db: web::Data<Database>) -> Result<
 /// Получение списка всех публичных проектов
 pub async fn list_public_projects(_req: HttpRequest, db: web::Data<Database>) -> Result<HttpResponse> {
     let pool = db.get_pool();
-    let projects_result = Project::find_public(conn).await;
+    let projects_result = Project::find_public(pool).await;
     
     match projects_result {
         Ok(projects) => {
@@ -149,7 +149,7 @@ pub async fn create_project(
     project_req: web::Json<CreateProjectRequest>,
     db: web::Data<Database>
 ) -> Result<HttpResponse> {
-    let user = check_auth_or_unauthorized(&req, &db);
+    let user = check_auth_or_unauthorized(&req, &db).await;
     if user.is_none() {
         return Ok(create_unauthorized_response());
     }
@@ -180,7 +180,7 @@ pub async fn create_project(
         created_at: None,
     };
     
-    let create_result = project.create(conn).await;
+    let create_result = project.create(pool).await;
     match create_result {
         Ok(_) => {
             Ok(HttpResponse::Ok().json(ApiResponse {
@@ -228,7 +228,7 @@ pub async fn get_project(
     };
 
     // Проверяем права доступа
-    let current_user = user::check_auth(&req, &db);
+    let current_user = user::check_auth(&req, &db).await;
     let can_access = project.is_public || 
         current_user.as_ref().map(|u| u.id.unwrap()) == Some(project.owner_id);
 
@@ -238,7 +238,7 @@ pub async fn get_project(
 
     // Получаем репозитории и конфигурацию
     let repositories = Repository::find_by_project(project.id.unwrap(), pool).await.unwrap_or_else(|_| Vec::new());
-    let config = project.get_config(conn.clone()).unwrap_or_default().await;
+    let config = project.get_config(pool).await.unwrap_or_default();
 
     let project_details = ProjectDetails {
         project,
@@ -263,7 +263,7 @@ pub async fn create_repo_in_project(
 ) -> Result<HttpResponse> {
     let (username, project_name) = path.into_inner();
     
-    let user = check_auth_or_unauthorized(&req, &db);
+    let user = check_auth_or_unauthorized(&req, &db).await;
     if user.is_none() {
         return Ok(create_unauthorized_response());
     }
@@ -322,7 +322,7 @@ pub async fn create_repo_in_project(
         created_at: None,
     };
     
-    let create_result = repo.create(conn);
+    let create_result = repo.create(pool);
     match create_result {
         Ok(_) => {
             Ok(HttpResponse::Ok().json(ApiResponse {
@@ -347,7 +347,7 @@ pub async fn update_project_config(
 ) -> Result<HttpResponse> {
     let (username, project_name) = path.into_inner();
     
-    let user = check_auth_or_unauthorized(&req, &db);
+    let user = check_auth_or_unauthorized(&req, &db).await;
     if user.is_none() {
         return Ok(create_unauthorized_response());
     }
@@ -431,7 +431,7 @@ pub async fn get_project_config(
     };
 
     // Проверяем права доступа
-    let current_user = user::check_auth(&req, &db);
+    let current_user = user::check_auth(&req, &db).await;
     let can_access = project.is_public || 
         current_user.as_ref().map(|u| u.id.unwrap()) == Some(project.owner_id);
 
@@ -440,7 +440,7 @@ pub async fn get_project_config(
     }
 
     // Загружаем конфигурацию
-    let config = project.get_config(db.get_pool()).unwrap_or_default().await;
+    let config = project.get_config(db.get_pool()).await.unwrap_or_default();
 
     Ok(HttpResponse::Ok().json(ApiResponse {
         success: true,

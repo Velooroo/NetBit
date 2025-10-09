@@ -234,15 +234,13 @@ pub async fn get_messages(
 ) -> Result<HttpResponse> {
     let chat_id = path.into_inner();
     let page = query.get("page")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(1) as u32;
+        .and_then(|v| v.as_i64());
     let per_page = query.get("per_page")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(50) as u32;
+        .and_then(|v| v.as_i64());
     
-    debug!("Получение сообщений чата {} (страница: {}, на странице: {})", chat_id, page, per_page);
+    debug!("Получение сообщений чата {} (страница: {:?}, на странице: {:?})", chat_id, page, per_page);
     
-    match Message::find_by_chat(chat_id, page, per_page, db.connection.clone()) {
+    match Message::find_by_chat(chat_id, page, per_page, db.get_pool()).await {
         Ok(messages) => {
             let message_responses: Vec<MessageResponse> = messages.into_iter().map(|msg| {
                 let message_type_str = match msg.message_type {

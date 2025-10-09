@@ -36,7 +36,7 @@ use super::user;
 /// ```
 pub async fn handle_info_refs(req: HttpRequest) -> HttpResponse {
     // Проверяем авторизацию пользователя
-    if user::check_auth(&req, &req.app_data::<web::Data<Database>>().unwrap()).is_none() {
+    if user::check_auth(&req, &req.app_data::<web::Data<Database>>().unwrap()).await.is_none() {
         return HttpResponse::Unauthorized()
             .append_header(("WWW-Authenticate", "Basic realm=\"Git\""))
             .finish();
@@ -120,7 +120,7 @@ pub async fn handle_info_refs(req: HttpRequest) -> HttpResponse {
 /// 3. Сервер возвращает упакованные объекты
 pub async fn handle_upload_pack(req: HttpRequest, body: web::Bytes) -> HttpResponse {
     // Проверяем авторизацию пользователя
-    if user::check_auth(&req, &req.app_data::<web::Data<Database>>().unwrap()).is_none() {
+    if user::check_auth(&req, &req.app_data::<web::Data<Database>>().unwrap()).await.is_none() {
         return HttpResponse::Unauthorized()
             .append_header(("WWW-Authenticate", "Basic realm=\"Git\""))
             .finish();
@@ -184,7 +184,7 @@ let _repo_path = PathBuf::from("repositories").join(format!("{}.git", repo_name)
 /// 3. Сервер обновляет ссылки и возвращает результат
 pub async fn handle_receive_pack(req: HttpRequest, body: web::Bytes) -> HttpResponse {
     // Проверяем авторизацию и получаем имя пользователя
-    let _username = match user::check_auth(&req, &req.app_data::<web::Data<Database>>().unwrap()) {
+    let _username = match user::check_auth(&req, &req.app_data::<web::Data<Database>>().unwrap()).await {
         Some(user) => user.username,
         None => return HttpResponse::Unauthorized()
             .append_header(("WWW-Authenticate", "Basic realm=\"Git\""))

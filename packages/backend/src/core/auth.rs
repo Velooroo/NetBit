@@ -92,7 +92,7 @@ pub fn extract_token_from_header(req: &HttpRequest) -> Option<String> {
 }
 
 /// Проверяет JWT токен и возвращает пользователя
-pub fn verify_jwt_token(req: &HttpRequest, db: &Database) -> Option<User> {
+pub async fn verify_jwt_token(req: &HttpRequest, db: &Database) -> Option<User> {
     let token = extract_token_from_header(req)?;
     
     match Claims::from_token(&token) {
@@ -104,8 +104,8 @@ pub fn verify_jwt_token(req: &HttpRequest, db: &Database) -> Option<User> {
             }
             
             // Получаем пользователя из базы данных
-            let conn = db.get_connection();
-            match User::find_by_id(claims.user_id, conn) {
+            let pool = db.get_pool();
+            match User::find_by_id(claims.user_id, pool).await {
                 Ok(Some(user)) => Some(user),
                 _ => None
             }
@@ -137,18 +137,18 @@ pub fn generate_token_for_user(user: &User) -> Result<TokenResponse, String> {
 }
 
 /// Проверка аутентификации пользователя (JWT или Basic Auth)
-pub fn check_auth(req: &HttpRequest, db: &Database) -> Option<User> {
+pub async fn check_auth(req: &HttpRequest, db: &Database) -> Option<User> {
     // Сначала пробуем JWT токен
-    if let Some(user) = verify_jwt_token(req, db) {
+    if let Some(user) = verify_jwt_token(req, db).await {
         return Some(user);
     }
     
     // Если JWT не найден, пробуем Basic Auth для обратной совместимости
-    check_basic_auth(req, db)
+    check_basic_auth(req, db).await
 }
 
 /// Поддержка Basic Auth для Git операций
-pub fn check_basic_auth(req: &HttpRequest, db: &Database) -> Option<User> {
+pub async fn check_basic_auth(req: &HttpRequest, db: &Database) -> Option<User> {
     use base64::{Engine as _, engine::general_purpose};
     
     let auth_header = req.headers().get("Authorization")?;
@@ -165,8 +165,8 @@ pub fn check_basic_auth(req: &HttpRequest, db: &Database) -> Option<User> {
     let username = parts.next()?;
     let password = parts.next()?;
 
-    let conn = db.get_connection();
-    match User::authenticate(username, password, conn) {
+    let pool = db.get_pool();
+    match User::authenticate(username, password, pool).await {
         Ok(Some(user)) => Some(user),
         _ => None
     }
