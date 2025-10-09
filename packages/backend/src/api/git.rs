@@ -54,8 +54,6 @@ pub async fn handle_info_refs(req: HttpRequest) -> HttpResponse {
         None => return HttpResponse::BadRequest().finish()
     };
 
-let _repo_path = PathBuf::from("repositories").join(format!("{}.git", repo_name));
-
     // Выбираем соответствующую Git команду
     let git_command = if service == "git-upload-pack" { "upload-pack" } else { "receive-pack" };
 
@@ -131,8 +129,6 @@ pub async fn handle_upload_pack(req: HttpRequest, body: web::Bytes) -> HttpRespo
     let user_name = req.match_info().get("user_name").unwrap();
     let repo_name = req.match_info().get("repo_name").unwrap();
 let _repo_path = PathBuf::from("repositories").join(format!("{}.git", repo_name));
-
-    debug!("Handling upload-pack for repo: {}", repo_name);
 
     // Запускаем git-upload-pack в режиме stateless-rpc (для HTTP протокола)
     let mut child = Command::new("git")

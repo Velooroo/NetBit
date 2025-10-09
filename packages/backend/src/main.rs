@@ -4,7 +4,7 @@ use actix_cors::Cors;
 use env_logger;
 
 // ============================================================================
-// ИМПОРТЫ МОДУЛЕЙ
+// ИМПОРТЫ УТИЛИТ
 // ============================================================================
 
 mod core;
@@ -13,6 +13,15 @@ mod api;
 mod utils;
 
 use core::{database::Database, config::load_config, config::validate_config, config::print_config};
+
+// ============================================================================
+// ИМПОРТЫ МОДУЛЕЙ
+// ============================================================================
+
+mod modules;
+
+use modules::{spark};
+
 
 // ============================================================================
 // ОСНОВНАЯ ФУНКЦИЯ
@@ -53,12 +62,6 @@ async fn main() -> std::io::Result<()> {
         std::process::exit(1);
     }
 
-    // Выполнение миграций
-    if let Err(e) = database.migrate() {
-        eprintln!("Database migration failed: {}", e);
-        std::process::exit(1);
-    }
-
     let bind_address = format!("{}:{}", config.host, config.port);
     println!("Starting server at http://{}", bind_address);
 
@@ -75,6 +78,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(Logger::default())
             .configure(configure_routes)
+            .configure(modules::spark::configure_routes)
     })
     .bind(&bind_address)?
     .run()
