@@ -48,13 +48,21 @@ GRANT ALL PRIVILEGES ON DATABASE netbit TO netbit_user;
 
 ## Configuration
 
-### Environment Variables
+### Environment Variables (.env file)
 
-Create a `.env` file in `packages/backend/` with:
+The application now supports loading configuration from a `.env` file. This is the recommended way to configure your database connection and other settings.
+
+**Step 1**: Copy the example file:
+```bash
+cd packages/backend
+cp .env.example .env
+```
+
+**Step 2**: Edit `.env` with your database connection details:
 
 ```env
 # Database Configuration
-DATABASE_URL=postgresql://netbit_user:your_secure_password@localhost/netbit
+DATABASE_URL=postgresql://username:password@host:port/database
 
 # Server Configuration
 HOST=0.0.0.0
@@ -67,7 +75,15 @@ JWT_SECRET=your-secret-key-change-in-production
 REPOSITORIES_PATH=repositories
 ```
 
-**Important**: Never commit the `.env` file. It's already in `.gitignore`.
+**Example** (using the provided connection):
+```env
+DATABASE_URL=postgresql://kazilsky:jcnaYRMwQq6mFYOuUkpOURCBFtVi@147.45.111.117:5432/Sparked
+```
+
+**Important**: 
+- Never commit the `.env` file to version control. It's already in `.gitignore`.
+- The `.env.example` file is provided as a template and can be committed.
+- The application will automatically load the `.env` file on startup if it exists.
 
 ### Default Configuration
 

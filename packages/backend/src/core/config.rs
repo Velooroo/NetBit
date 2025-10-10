@@ -18,7 +18,11 @@ const DEFAULT_REPOSITORIES_PATH: &str = "repositories";
 // ============================================================================
 
 /// Загружает конфигурацию из переменных окружения или использует значения по умолчанию
+/// Сначала пытается загрузить .env файл, если он существует
 pub fn load_config() -> ServerConfig {
+    // Пытаемся загрузить .env файл (игнорируем ошибку если файл не найден)
+    let _ = dotenvy::dotenv();
+    
     ServerConfig {
         host: env::var("HOST").unwrap_or_else(|_| DEFAULT_HOST.to_string()),
         port: env::var("PORT")
