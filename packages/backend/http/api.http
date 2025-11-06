@@ -1,0 +1,119 @@
+### Login
+POST http://localhost:8000/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### Refresh tokens
+POST http://localhost:8000/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refreshToken}}"
+}
+
+### Logout
+POST http://localhost:8000/api/auth/logout
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refreshToken}}"
+}
+
+### Register
+POST http://localhost:8000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{newUsername}}",
+  "email": "{{newEmail}}",
+  "password": "{{newPassword}}"
+}
+
+### Get profile
+GET http://localhost:8000/api/user/profile
+Authorization: Bearer {{token}}
+
+### List projects
+GET http://localhost:8000/api/projects
+Authorization: Bearer {{token}}
+
+### List public projects
+GET http://localhost:8000/api/projects/public
+
+### Create project
+POST http://localhost:8000/api/projects/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "{{projectName}}",
+  "description": "{{projectDescription}}",
+  "is_public": {{projectPublic}}
+}
+
+### Get project
+GET http://localhost:8000/api/projects/{{owner}}/{{project}}
+Authorization: Bearer {{token}}
+
+### Get project config
+GET http://localhost:8000/api/projects/{{owner}}/{{project}}/config
+Authorization: Bearer {{token}}
+
+### Update project config
+PUT http://localhost:8000/api/projects/{{owner}}/{{project}}/config
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "metadata": {
+    "tags": []
+  }
+}
+
+### Create repo in project
+POST http://localhost:8000/api/projects/{{owner}}/{{project}}/repos/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "repository_name": "{{repoName}}",
+  "description": "{{repoDescription}}"
+}
+
+### Get repo in project
+GET http://localhost:8000/api/projects/{{owner}}/{{project}}/{{repo}}
+Authorization: Bearer {{token}}
+
+### Get repo contents
+GET http://localhost:8000/api/projects/{{owner}}/{{project}}/{{repo}}/contents
+Authorization: Bearer {{token}}
+
+### Get repo commits
+GET http://localhost:8000/api/projects/{{owner}}/{{project}}/{{repo}}/commits
+Authorization: Bearer {{token}}
+
+### Get repo branches
+GET http://localhost:8000/api/projects/{{owner}}/{{project}}/{{repo}}/branches
+Authorization: Bearer {{token}}
+
+### Get repo readme
+GET http://localhost:8000/api/projects/{{owner}}/{{project}}/{{repo}}/readme
+Authorization: Bearer {{token}}
+
+### List notifications
+GET http://localhost:8000/api/notifications
+Authorization: Bearer {{token}}
+
+### Create notification
+POST http://localhost:8000/api/notifications
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "{{notificationName}}",
+  "content": "{{notificationContent}}"
+}

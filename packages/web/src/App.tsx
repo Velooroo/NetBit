@@ -1,69 +1,116 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import './index.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// Import components
-import Header from './components/Header';
-import Hello from './pages/HelloUser';
+import { useAuth } from "./context/AuthContext";
+import AuthPage from "./pages/AuthPage";
+import DashboardPage from "./pages/DashboardPage";
+import WorkspacePage from "./pages/WorkspacePage";
+import ArchivePage from "./pages/ArchivePage";
+import CommunityPage from "./pages/CommunityPage";
+import SettingsPage from "./pages/SettingsPage";
+import StoriesPage from "./pages/StoriesPage";
 
-interface User {
-  id: number;
-  username: string;
-  email: string | null;
-}
+const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({
+  children,
+}) => {
+  const { isAuthenticated, loading } = useAuth();
 
-function App() {
-  const [user, setUser] = useState<User | null>(null);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-12 w-12 rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin" />
+          <p className="text-sm uppercase tracking-wide text-slate-400">
+            Загрузка рабочего пространства
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse stored user', e);
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-  const handleLogin = (userData: User) => {
-    setUser(userData);
-  };
+  return children;
+};
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
-    setUser(null);
-  };
-
-  const handleGetStarted = () => {
-    // Navigate to login page when "Get Started" is clicked
-    window.location.href = '/login';
-  };
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
 
   return (
-      <Router>
-        <div className="min-h-screen flex flex-col">
-          {/* Only show header for non-OS pages */}
-          {user && window.location.pathname !== '/' && <Header user={user} onLogout={handleLogout} />}
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={
-                user ? <Hello user={user} /> : <Hello onGetStarted={handleGetStarted} />
-              } />
-              {/* <Route path="/login" element={
-                user ? <Navigate to="/" /> : <LoginPage onLogin={handleLogin} /> 
-              } /> */}
-            </Routes>
-          </main>
-          
-          {/* Welcome Dialog - only for non-OS pages */}
-          {window.location.pathname !== '/' && <WelcomeDialog />}
-        </div>
-      </Router>
+    <Routes>
+      <Route
+        path="/login"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />}
+      />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workspace/:projectId"
+        element={
+          <ProtectedRoute>
+            <WorkspacePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workspace/new"
+        element={
+          <ProtectedRoute>
+            <WorkspacePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/archive"
+        element={
+          <ProtectedRoute>
+            <ArchivePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/community"
+        element={
+          <ProtectedRoute>
+            <CommunityPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stories"
+        element={
+          <ProtectedRoute>
+            <StoriesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+    </Routes>
   );
 }
 
-export default App; 
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+}
+
+export default App;
+

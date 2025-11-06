@@ -1,7 +1,7 @@
 //! Ядро системы - конфигурация приложения
 
-use std::env;
 use crate::core::types::ServerConfig;
+use std::env;
 
 // ============================================================================
 // КОНСТАНТЫ ПО УМОЛЧАНИЮ
@@ -22,7 +22,7 @@ const DEFAULT_REPOSITORIES_PATH: &str = "repositories";
 pub fn load_config() -> ServerConfig {
     // Пытаемся загрузить .env файл (игнорируем ошибку если файл не найден)
     let _ = dotenvy::dotenv();
-    
+
     ServerConfig {
         host: env::var("HOST").unwrap_or_else(|_| DEFAULT_HOST.to_string()),
         port: env::var("PORT")
@@ -31,7 +31,8 @@ pub fn load_config() -> ServerConfig {
             .unwrap_or(DEFAULT_PORT),
         database_url: env::var("DATABASE_URL").unwrap_or_else(|_| DEFAULT_DATABASE_URL.to_string()),
         jwt_secret: env::var("JWT_SECRET").unwrap_or_else(|_| DEFAULT_JWT_SECRET.to_string()),
-        repositories_path: env::var("REPOSITORIES_PATH").unwrap_or_else(|_| DEFAULT_REPOSITORIES_PATH.to_string()),
+        repositories_path: env::var("REPOSITORIES_PATH")
+            .unwrap_or_else(|_| DEFAULT_REPOSITORIES_PATH.to_string()),
     }
 }
 

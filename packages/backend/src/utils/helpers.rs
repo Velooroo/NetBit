@@ -1,9 +1,9 @@
 //! Вспомогательные функции и утилиты
 
-use std::fs;
-use std::path::Path;
 use chrono::{DateTime, Utc};
 use serde_json::Value;
+use std::fs;
+use std::path::Path;
 
 // ============================================================================
 // ФАЙЛОВЫЕ ОПЕРАЦИИ
@@ -66,8 +66,10 @@ pub fn is_valid_username(username: &str) -> bool {
     if username.is_empty() || username.len() < 3 || username.len() > 50 {
         return false;
     }
-    
-    username.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-')
+
+    username
+        .chars()
+        .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
 }
 
 /// Проверяет валидность имени проекта/репозитория
@@ -75,9 +77,10 @@ pub fn is_valid_project_name(name: &str) -> bool {
     if name.is_empty() || name.len() < 1 || name.len() > 100 {
         return false;
     }
-    
+
     // Разрешаем буквы, цифры, дефисы, подчеркивания и точки
-    name.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-' || c == '.')
+    name.chars()
+        .all(|c| c.is_alphanumeric() || c == '_' || c == '-' || c == '.')
         && !name.starts_with('.')
         && !name.ends_with('.')
 }
@@ -93,20 +96,17 @@ pub fn is_valid_email(email: &str) -> bool {
 
 /// Безопасно парсит JSON строку
 pub fn safe_parse_json(json_str: &str) -> Result<Value, String> {
-    serde_json::from_str(json_str)
-        .map_err(|e| format!("JSON parse error: {}", e))
+    serde_json::from_str(json_str).map_err(|e| format!("JSON parse error: {}", e))
 }
 
 /// Конвертирует объект в JSON строку
 pub fn to_json_string<T: serde::Serialize>(obj: &T) -> Result<String, String> {
-    serde_json::to_string(obj)
-        .map_err(|e| format!("JSON serialize error: {}", e))
+    serde_json::to_string(obj).map_err(|e| format!("JSON serialize error: {}", e))
 }
 
 /// Конвертирует объект в красиво отформатированный JSON
 pub fn to_pretty_json<T: serde::Serialize>(obj: &T) -> Result<String, String> {
-    serde_json::to_string_pretty(obj)
-        .map_err(|e| format!("JSON serialize error: {}", e))
+    serde_json::to_string_pretty(obj).map_err(|e| format!("JSON serialize error: {}", e))
 }
 
 // ============================================================================
@@ -143,7 +143,7 @@ pub fn generate_random_string(length: usize) -> String {
         0123456789
     ";
     let mut rng = rand::thread_rng();
-    
+
     (0..length)
         .map(|_| {
             let idx = rng.gen_range(0..CHARSET.len());
@@ -165,7 +165,7 @@ pub fn generate_id() -> String {
 pub fn hash_password(password: &str) -> String {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
-    
+
     let mut hasher = DefaultHasher::new();
     password.hash(&mut hasher);
     format!("{:x}", hasher.finish())
@@ -185,12 +185,12 @@ pub fn format_file_size(size: u64) -> String {
     const UNITS: &[&str] = &["B", "KB", "MB", "GB", "TB"];
     let mut size = size as f64;
     let mut unit_index = 0;
-    
+
     while size >= 1024.0 && unit_index < UNITS.len() - 1 {
         size /= 1024.0;
         unit_index += 1;
     }
-    
+
     if unit_index == 0 {
         format!("{} {}", size as u64, UNITS[unit_index])
     } else {

@@ -1,56 +1,133 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  avatar?: string;
+import type { AuthSuccess, TokenPair, UserPayload } from "../lib/api/auth";
+import * as authApi from "../lib/api/auth";
+
+const STORAGE_KEY = "netbit.auth";
+
+interface StoredAuth {
+  user: UserPayload;
+  tokens: TokenPair;
 }
 
-interface AuthContextType {
-  user: User | null;
-  login: (userData: User) => void;
-  logout: () => void;
+interface AuthContextValue {
+  user: UserPayload | null;
+  tokens: TokenPair | null;
+  loading: boolean;
   isAuthenticated: boolean;
+  signIn: (credentials: {
+    username: string;
+    password: string;
+  }) => Promise<void>;
+  signOut: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+function loadStoredAuth(): StoredAuth | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredAuth;
+  } catch (error) {
+    console.warn("Failed to parse stored auth state", error);
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+}
+
+function persistAuth(payload: StoredAuth | null) {
+  if (!payload) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [user, setUser] = useState<UserPayload | null>(null);
+  const [tokens, setTokens] = useState<TokenPair | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in (e.g., from localStorage)
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const stored = loadStoredAuth();
+    if (stored) {
+      setUser(stored.user);
+      setTokens(stored.tokens);
     }
+    setLoading(false);
   }, []);
 
-  const login = (userData: User) => {
-    console.log(userData)
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
+  const setAuthState = useCallback((payload: AuthSuccess) => {
+    setUser(payload.user);
+    setTokens(payload.tokens);
+    persistAuth({ user: payload.user, tokens: payload.tokens });
+  }, []);
 
-  const logout = () => {
+  const clearAuthState = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('user');
-  };
+    setTokens(null);
+    persistAuth(null);
+  }, []);
 
-  const isAuthenticated = !!user;
-
-  return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
-      {children}
-    </AuthContext.Provider>
+  const signIn = useCallback(
+    async (credentials: { username: string; password: string }) => {
+      const result = await authApi.login(credentials);
+      setAuthState(result);
+    },
+    [setAuthState]
   );
+
+  const signOut = useCallback(async () => {
+    if (tokens?.refresh_token) {
+      try {
+        await authApi.logout({ refresh_token: tokens.refresh_token });
+      } catch (error) {
+        console.warn("Failed to revoke refresh token", error);
+      }
+    }
+    clearAuthState();
+  }, [tokens, clearAuthState]);
+
+  const refresh = useCallback(async () => {
+    if (!tokens?.refresh_token) {
+      throw new Error("Missing refresh token");
+    }
+
+    const result = await authApi.refresh({ refresh_token: tokens.refresh_token });
+    setAuthState(result);
+  }, [tokens, setAuthState]);
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      tokens,
+      loading,
+      isAuthenticated: Boolean(user && tokens),
+      signIn,
+      signOut,
+      refresh,
+    }),
+    [user, tokens, loading, signIn, signOut, refresh]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
+}

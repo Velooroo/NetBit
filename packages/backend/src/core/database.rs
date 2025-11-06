@@ -1,6 +1,6 @@
 //! Ядро системы - работа с базой данных
 
-use sqlx::{PgPool, postgres::PgPoolOptions};
+use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::time::Duration;
 
 /// Структура для работы с базой данных
@@ -17,7 +17,7 @@ impl Database {
             .acquire_timeout(Duration::from_secs(3))
             .connect(database_url)
             .await?;
-        
+
         Ok(Database { pool })
     }
 
@@ -28,17 +28,13 @@ impl Database {
 
     /// Выполняет миграции базы данных
     pub async fn run_migrations(&self) -> Result<(), sqlx::Error> {
-        sqlx::migrate!("./migrations")
-            .run(&self.pool)
-            .await?;
+        sqlx::migrate!("./migrations").run(&self.pool).await?;
         Ok(())
     }
 
     /// Проверяет подключение к базе данных
     pub async fn test_connection(&self) -> Result<(), sqlx::Error> {
-        sqlx::query("SELECT 1")
-            .fetch_one(&self.pool)
-            .await?;
+        sqlx::query("SELECT 1").fetch_one(&self.pool).await?;
         Ok(())
     }
 }

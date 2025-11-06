@@ -1,6 +1,7 @@
-//! Ядро системы - основные компоненты и инфраструктура
+//! Ядро системы — инфраструктурные компоненты
 
-pub mod database;
-pub mod auth;
 pub mod config;
+pub mod database;
+pub mod security;
+pub mod socket;
 pub mod types;

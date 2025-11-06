@@ -1,7 +1,8 @@
-//! Бизнес-логика и доменные модели
+//! Бизнес-логика и доменные модели, сгруппированные по подсистемам
 
-pub mod chat;
-pub mod notification;
-pub mod project;
-pub mod repository;
-pub mod user;
+pub mod auth;
+pub mod chats;
+pub mod notifications;
+pub mod projects;
+pub mod repos;
+pub mod users;
