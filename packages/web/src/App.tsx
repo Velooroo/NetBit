@@ -115,7 +115,7 @@ function App() {
     {
       icon: <FaCheckCircle className="w-6 h-6" />,
       title: 'Qualifying',
-      status: 'PLAN',
+      status: 'PLANNED',
       statusColor: 'bg-gray-100 text-gray-600',
       description: 'Validate your skills through comprehensive assessments. Your AI Professor ensures you truly master concepts before moving forward.',
       bullets: ['Skill verification system', 'Progress certifications', 'Mastery tracking'],
