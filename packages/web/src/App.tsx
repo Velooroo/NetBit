@@ -13,12 +13,14 @@ declare global {
   }
 }
 
+// TODO: Replace with actual presale contract address before production launch
 const PRESALE_ADDRESS = '0x0000000000000000000000000000000000000000';
 const PRESALE_AMOUNT = '0.05';
 
 function App() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [waitlistMessage, setWaitlistMessage] = useState<string | null>(null);
   const [isJoiningPresale, setIsJoiningPresale] = useState(false);
   const [presaleStatus, setPresaleStatus] = useState<string | null>(null);
 
@@ -63,11 +65,12 @@ function App() {
     if (!email) return;
     
     setIsSubmitting(true);
-    // Simulate API call
+    setWaitlistMessage(null);
+    // TODO: Replace with actual API call to waitlist service
     setTimeout(() => {
       setIsSubmitting(false);
       setEmail('');
-      alert('Thank you for joining the waitlist!');
+      setWaitlistMessage('Thank you for joining the waitlist!');
     }, 1000);
   };
 
@@ -221,6 +224,15 @@ function App() {
               {isSubmitting ? 'Submitting...' : 'Submit'}
             </button>
           </motion.form>
+          {waitlistMessage && (
+            <motion.p
+              className="mt-4 text-green-700 font-medium"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {waitlistMessage}
+            </motion.p>
+          )}
         </div>
       </motion.section>
 
