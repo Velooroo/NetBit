@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-      isMetaMask?: boolean;
-    };
-  }
-}
+import '../types/ethereum.d';
 
 const Navbar: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);

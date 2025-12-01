@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserProvider, parseEther } from 'ethers';
 import { motion } from 'framer-motion';
-
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-      isMetaMask?: boolean;
-    };
-  }
-}
+import '../types/ethereum.d';
 
 const PRESALE_ADDRESS = '0x0000000000000000000000000000000000000000';
 const PRESALE_AMOUNT = '0.05';
