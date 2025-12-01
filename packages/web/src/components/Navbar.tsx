@@ -1,65 +1,102 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FiSearch, FiBell, FiUser, FiMenu } from 'react-icons/fi';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      isMetaMask?: boolean;
+    };
+  }
+}
 
 const Navbar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const [isConnected, setIsConnected] = useState(false);
+  const [account, setAccount] = useState<string | null>(null);
+
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      alert('Please install MetaMask!');
+      return;
+    }
+
+    try {
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      }) as string[];
+      
+      if (accounts && accounts.length > 0) {
+        setAccount(accounts[0]);
+        setIsConnected(true);
+      }
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+    }
+  };
+
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
 
   return (
-    <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center">
-            <button className="md:hidden p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100">
-              <FiMenu className="h-6 w-6" />
-            </button>
-            <Link to="/" className="text-xl font-bold text-indigo-600">
-              GitClone
-            </Link>
-          </div>
-          
-          <div className="flex-1 max-w-md mx-4 hidden md:block">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiSearch className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search repositories, projects..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-lg border-b border-green-500/20"
+    >
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <motion.div 
+            className="flex items-center gap-2"
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
+              <span className="text-white font-bold text-xl">N</span>
             </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
+              Netbit
+            </span>
+          </motion.div>
+
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#features" className="text-gray-300 hover:text-green-400 transition-colors">
+              Features
+            </a>
+            <a href="#presale" className="text-gray-300 hover:text-green-400 transition-colors">
+              Pre-sale
+            </a>
+            <a 
+              href="https://docs.netbit.io" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-300 hover:text-green-400 transition-colors"
+            >
+              Docs
+            </a>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <button className="p-2 rounded-full text-gray-500 hover:text-gray-600 hover:bg-gray-100">
-              <FiBell className="h-5 w-5" />
-            </button>
-            
-            {user ? (
-              <div className="relative group">
-                <button className="flex items-center space-x-2">
-                  <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <FiUser className="text-indigo-600" />
-                  </div>
-                  <span className="hidden md:inline text-sm font-medium text-gray-700">{user.username}</span>
-                </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
-                  <Link to="/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</Link>
-                  <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex space-x-2">
-                <Link to="/login" className="px-3 py-1 text-sm font-medium text-indigo-600 hover:text-indigo-800">Sign in</Link>
-                <Link to="/register" className="px-3 py-1 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Sign up</Link>
-              </div>
-            )}
-          </div>
+
+          {/* Connect Wallet Button */}
+          <motion.button
+            onClick={connectWallet}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`
+              px-6 py-2.5 rounded-lg font-medium text-sm
+              transition-all duration-300
+              ${isConnected
+                ? 'bg-green-500/20 border border-green-500 text-green-400'
+                : 'bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:shadow-lg hover:shadow-green-500/25'
+              }
+            `}
+          >
+            {isConnected && account ? formatAddress(account) : 'Connect Wallet'}
+          </motion.button>
         </div>
       </div>
-    </header>
+    </motion.nav>
   );
 };
 
