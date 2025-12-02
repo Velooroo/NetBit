@@ -32,17 +32,18 @@ declare global {
 const PRESALE_ADDRESS = '0x0000000000000000000000000000000000000000';
 const PRESALE_AMOUNT = '0.05';
 
-// Floating 3D shapes component
+// Floating 3D shapes component - Dark Theme
 const FloatingShapes = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {/* Animated gradient blobs */}
-    <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-green-300/30 to-emerald-300/30 rounded-full blur-3xl animate-blob" />
-    <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-green-400/20 to-teal-300/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s' }} />
-    <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-emerald-300/25 to-green-200/25 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
+    {/* Animated gradient blobs - Dark theme */}
+    <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full blur-3xl animate-blob" />
+    <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-green-600/15 to-teal-500/15 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s' }} />
+    <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-emerald-500/20 to-green-400/20 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
+    <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full blur-3xl animate-blob" style={{ animationDelay: '3s' }} />
     
-    {/* Floating 3D cubes */}
+    {/* Floating 3D cubes - Dark theme with glow */}
     <motion.div 
-      className="absolute top-32 right-1/4 w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl shadow-lg opacity-60"
+      className="absolute top-32 right-1/4 w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl shadow-2xl shadow-green-500/30 opacity-70"
       animate={{ 
         y: [0, -30, 0],
         rotate: [0, 10, 0],
@@ -51,7 +52,7 @@ const FloatingShapes = () => (
       transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
     />
     <motion.div 
-      className="absolute top-1/2 left-16 w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl shadow-lg opacity-50"
+      className="absolute top-1/2 left-16 w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl shadow-2xl shadow-emerald-500/30 opacity-60"
       animate={{ 
         y: [0, -20, 0],
         rotate: [0, -15, 0],
@@ -60,7 +61,7 @@ const FloatingShapes = () => (
       transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
     />
     <motion.div 
-      className="absolute bottom-40 right-16 w-20 h-20 bg-gradient-to-br from-green-300 to-emerald-400 rounded-3xl shadow-lg opacity-40"
+      className="absolute bottom-40 right-16 w-20 h-20 bg-gradient-to-br from-green-300 to-emerald-400 rounded-3xl shadow-2xl shadow-green-400/30 opacity-50"
       animate={{ 
         y: [0, -40, 0],
         rotate: [0, 20, 0]
@@ -68,17 +69,25 @@ const FloatingShapes = () => (
       transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
     />
     
-    {/* Glowing orbs */}
+    {/* Glowing orbs with enhanced glow */}
     <motion.div 
-      className="absolute top-1/4 right-10 w-4 h-4 bg-green-400 rounded-full shadow-lg animate-pulse-glow"
+      className="absolute top-1/4 right-10 w-4 h-4 bg-green-400 rounded-full shadow-lg shadow-green-400/50 animate-pulse-glow"
       animate={{ scale: [1, 1.5, 1], opacity: [0.6, 1, 0.6] }}
       transition={{ duration: 3, repeat: Infinity }}
     />
     <motion.div 
-      className="absolute bottom-1/3 left-1/4 w-3 h-3 bg-emerald-400 rounded-full shadow-lg"
+      className="absolute bottom-1/3 left-1/4 w-3 h-3 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/50"
       animate={{ scale: [1, 1.8, 1], opacity: [0.4, 0.8, 0.4] }}
       transition={{ duration: 4, repeat: Infinity, delay: 1 }}
     />
+    <motion.div 
+      className="absolute top-2/3 right-1/4 w-2 h-2 bg-teal-300 rounded-full shadow-lg shadow-teal-300/50"
+      animate={{ scale: [1, 2, 1], opacity: [0.3, 0.7, 0.3] }}
+      transition={{ duration: 5, repeat: Infinity, delay: 2 }}
+    />
+    
+    {/* Grid pattern overlay */}
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(34,197,94,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,197,94,0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
   </div>
 );
 
@@ -386,15 +395,15 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black relative overflow-hidden">
       {/* Global floating shapes background */}
       <FloatingShapes />
       
-      {/* Mesh gradient overlay */}
-      <div className="fixed inset-0 mesh-gradient pointer-events-none" />
+      {/* Mesh gradient overlay - Dark theme */}
+      <div className="fixed inset-0 mesh-gradient-dark pointer-events-none" />
       
-      {/* Header with glassmorphism */}
-      <header className="sticky top-0 z-50 glass border-b border-white/20">
+      {/* Header with dark glassmorphism */}
+      <header className="sticky top-0 z-50 glass-dark border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <motion.div 
             className="flex items-center gap-3"
@@ -403,15 +412,15 @@ function App() {
             transition={{ duration: 0.6 }}
           >
             <motion.div 
-              className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg glow-green"
+              className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30"
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
               <span className="text-white font-bold text-lg">N</span>
             </motion.div>
-            <span className="font-bold text-xl gradient-text">Netbit</span>
+            <span className="font-bold text-xl text-white">Netbit</span>
             <motion.span 
-              className="text-xs bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-3 py-1 rounded-full font-medium border border-green-200"
+              className="text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded-full font-medium border border-green-500/30"
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -424,10 +433,10 @@ function App() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <span className="text-gray-600 text-sm hidden sm:block">Auth coming soon</span>
+            <span className="text-gray-400 text-sm hidden sm:block">Auth coming soon</span>
             <motion.button 
               onClick={handleJoinPresale}
-              className="relative bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium py-2.5 px-5 rounded-xl text-sm transition-all shadow-lg hover:shadow-xl"
+              className="relative bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-medium py-2.5 px-5 rounded-xl text-sm transition-all shadow-lg shadow-green-500/25 hover:shadow-green-500/40"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -448,20 +457,20 @@ function App() {
         <div className="max-w-5xl mx-auto relative">
           {/* Decorative elements */}
           <motion.div 
-            className="absolute -top-10 -left-10 w-32 h-32 bg-gradient-to-br from-green-200/50 to-emerald-300/50 rounded-full blur-2xl"
+            className="absolute -top-10 -left-10 w-32 h-32 bg-gradient-to-br from-green-500/30 to-emerald-500/30 rounded-full blur-2xl"
             animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
             transition={{ duration: 4, repeat: Infinity }}
           />
           <motion.div 
-            className="absolute -bottom-10 -right-10 w-40 h-40 bg-gradient-to-br from-emerald-200/50 to-teal-300/50 rounded-full blur-2xl"
+            className="absolute -bottom-10 -right-10 w-40 h-40 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 rounded-full blur-2xl"
             animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.7, 0.4] }}
             transition={{ duration: 5, repeat: Infinity, delay: 1 }}
           />
           
           <Card3D className="relative">
-            <div className="bg-gradient-to-br from-gray-50 via-white to-green-50/30 rounded-3xl p-8 md:p-14 relative overflow-hidden border border-gray-100/50 shadow-2xl">
+            <div className="bg-gradient-to-br from-gray-900/90 via-gray-800/90 to-gray-900/90 rounded-3xl p-8 md:p-14 relative overflow-hidden border border-green-500/20 shadow-2xl shadow-green-500/10 backdrop-blur-xl">
               {/* Animated gradient border */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-400/20 via-emerald-500/20 to-teal-400/20 animate-gradient opacity-50" />
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-teal-500/10 animate-gradient opacity-50" />
               
               {/* Floating badge */}
               <motion.div 
@@ -469,7 +478,7 @@ function App() {
                 animate={{ y: [0, -5, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <span className="text-xs bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full font-medium shadow-lg">
+                <span className="text-xs bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full font-medium shadow-lg shadow-green-500/30">
                   <FaStar className="inline w-3 h-3 mr-1" />
                   IN DEVELOPMENT
                 </span>
@@ -477,7 +486,7 @@ function App() {
               
               <motion.div className="text-center mb-10 relative z-10" variants={fadeInUp}>
                 <motion.span 
-                  className="inline-flex items-center gap-2 text-green-600 text-sm font-medium mb-4 bg-green-50 px-4 py-2 rounded-full"
+                  className="inline-flex items-center gap-2 text-green-400 text-sm font-medium mb-4 bg-green-500/10 px-4 py-2 rounded-full border border-green-500/20"
                   animate={{ scale: [1, 1.02, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
@@ -485,20 +494,20 @@ function App() {
                   COMING SOON
                 </motion.span>
                 <motion.p 
-                  className="gradient-text font-semibold mb-3 text-lg"
+                  className="text-green-400 font-semibold mb-3 text-lg"
                   variants={fadeInUp}
                 >
                   Your Personal AI Professor
                 </motion.p>
                 <motion.h1 
-                  className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight"
+                  className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
                   variants={fadeInUp}
                 >
                   Everyone Deserves<br />
-                  <span className="gradient-text">A Great Professor</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400">A Great Professor</span>
                 </motion.h1>
                 <motion.p 
-                  className="text-gray-600 max-w-2xl mx-auto mb-10 text-lg leading-relaxed"
+                  className="text-gray-400 max-w-2xl mx-auto mb-10 text-lg leading-relaxed"
                   variants={fadeInUp}
                 >
                   Your AI mentor with memory, emotions, and unwavering dedication to your success. Complete development platform with Obsidian, Git server, and Spark infrastructure.
@@ -511,17 +520,17 @@ function App() {
                   <motion.button
                     onClick={handleJoinPresale}
                     disabled={isJoiningPresale}
-                    className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 text-white font-semibold py-4 px-8 rounded-xl transition-all disabled:opacity-50 shadow-xl hover:shadow-2xl overflow-hidden"
+                    className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 text-white font-semibold py-4 px-8 rounded-xl transition-all disabled:opacity-50 shadow-xl shadow-green-500/25 hover:shadow-green-500/40 overflow-hidden"
                     whileHover={{ scale: 1.05, y: -3 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <FaRocket className="w-5 h-5 relative z-10 group-hover:animate-bounce" />
                     <span className="relative z-10">{isJoiningPresale ? 'Processing...' : 'Join Pre-Sale'}</span>
                     <div className="absolute inset-0 animate-shimmer" />
                   </motion.button>
                   <motion.button 
-                    className="group inline-flex items-center justify-center gap-2 bg-white border-2 border-gray-200 text-gray-700 font-semibold py-4 px-8 rounded-xl hover:border-green-300 hover:bg-green-50/50 transition-all shadow-lg"
+                    className="group inline-flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white font-semibold py-4 px-8 rounded-xl hover:border-green-500/50 hover:bg-green-500/10 transition-all"
                     whileHover={{ scale: 1.05, y: -3 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -532,7 +541,7 @@ function App() {
                 
                 {presaleStatus && (
                   <motion.p
-                    className="text-sm text-gray-700 max-w-md mx-auto break-all bg-gray-50 p-3 rounded-lg"
+                    className="text-sm text-gray-300 max-w-md mx-auto break-all bg-gray-800/50 p-3 rounded-lg border border-gray-700"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
@@ -551,38 +560,38 @@ function App() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <motion.div 
-                    className="w-24 h-24 bg-gradient-to-br from-green-300 to-emerald-400 rounded-3xl flex items-center justify-center shadow-xl"
+                    className="w-24 h-24 bg-gradient-to-br from-green-500/80 to-emerald-600/80 rounded-3xl flex items-center justify-center shadow-2xl shadow-green-500/30 backdrop-blur-sm border border-green-400/20"
                     animate={{ rotate: [0, 5, 0, -5, 0] }}
                     transition={{ duration: 6, repeat: Infinity }}
                   >
                     <motion.div 
-                      className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg"
+                      className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl shadow-lg shadow-green-400/30"
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                   </motion.div>
                   <motion.div 
-                    className="w-18 h-18 bg-gradient-to-br from-green-100 to-emerald-200 rounded-2xl flex items-center justify-center shadow-lg p-4"
+                    className="w-18 h-18 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center shadow-lg p-4 border border-green-400/20 backdrop-blur-sm"
                     animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
                   >
-                    <FaUsers className="w-8 h-8 text-green-600" />
+                    <FaUsers className="w-8 h-8 text-green-400" />
                   </motion.div>
                 </motion.div>
                 <div className="flex flex-col gap-3">
                   {['Remembers your progress', 'Adapts to your style', 'Celebrates your wins'].map((text, idx) => (
                     <motion.div 
                       key={idx}
-                      className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-full px-5 py-3 shadow-lg border border-gray-100"
+                      className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-full px-5 py-3 border border-gray-700/50"
                       initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.5 + idx * 0.15 }}
-                      whileHover={{ scale: 1.05, x: 5 }}
+                      whileHover={{ scale: 1.05, x: 5, borderColor: 'rgba(34, 197, 94, 0.3)' }}
                     >
-                      <div className="w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30">
                         <FaCheck className="w-3 h-3 text-white" />
                       </div>
-                      <span className="text-sm font-medium text-gray-700">{text}</span>
+                      <span className="text-sm font-medium text-gray-300">{text}</span>
                     </motion.div>
                   ))}
                 </div>
@@ -600,15 +609,16 @@ function App() {
         viewport={{ once: true, amount: 0.2 }}
         variants={staggerContainer}
       >
-        {/* Aurora background */}
-        <div className="absolute inset-0 aurora-bg" />
+        {/* Aurora background - Dark theme */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-950 to-black" />
+        <div className="absolute inset-0 aurora-bg-dark" />
         
         {/* Animated particles */}
         <div className="particles-container">
           {[...Array(12)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-2 h-2 bg-green-400/60 rounded-full"
+              className="absolute w-2 h-2 bg-green-400/60 rounded-full shadow-lg shadow-green-400/50"
               style={{
                 left: `${10 + (i * 7)}%`,
                 top: `${20 + (i % 3) * 25}%`,
@@ -631,16 +641,16 @@ function App() {
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <motion.span 
-              className="inline-flex items-center gap-2 text-xs bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-600 px-4 py-2 rounded-full font-medium mb-4 border border-green-300/50 backdrop-blur-sm"
+              className="inline-flex items-center gap-2 text-xs bg-green-500/10 text-green-400 px-4 py-2 rounded-full font-medium mb-4 border border-green-500/30 backdrop-blur-sm"
               whileHover={{ scale: 1.05 }}
             >
               <FaCube className="w-3 h-3" />
               3D PRODUCT SHOWCASE
             </motion.span>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              Experience <span className="gradient-text animate-text-gradient">Netbit</span> In 3D
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+              Experience <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400 animate-text-gradient">Netbit</span> In 3D
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
               Interactive 3D visualizations of our platform. Explore the future of AI-powered learning.
             </p>
           </motion.div>
@@ -650,7 +660,7 @@ function App() {
             {/* AI Professor 3D Model Placeholder */}
             <Card3D>
               <motion.div 
-                className="spline-container rounded-3xl border border-green-200/50 shadow-2xl relative group"
+                className="spline-container rounded-3xl border border-green-500/20 shadow-2xl shadow-green-500/10 relative group bg-gray-900/50 backdrop-blur-xl"
                 variants={fadeInLeft}
                 whileHover={{ scale: 1.02 }}
               >
@@ -660,7 +670,7 @@ function App() {
                   <div className="scene-3d relative w-48 h-48">
                     {/* Central orb */}
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full animate-glow-pulse"
+                      className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full animate-glow-pulse shadow-2xl shadow-green-500/50"
                       animate={{ 
                         scale: [1, 1.1, 1],
                         rotate: [0, 180, 360]
@@ -672,7 +682,7 @@ function App() {
                     {[0, 120, 240].map((angle, i) => (
                       <motion.div
                         key={i}
-                        className="absolute w-8 h-8 bg-gradient-to-br from-white to-green-100 rounded-xl shadow-lg"
+                        className="absolute w-8 h-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-lg border border-green-500/30"
                         style={{
                           top: '50%',
                           left: '50%',
@@ -692,7 +702,7 @@ function App() {
                           style={{
                             transform: `translateX(80px)`,
                           }}
-                          className="w-8 h-8 bg-gradient-to-br from-green-300 to-emerald-400 rounded-lg shadow-md flex items-center justify-center"
+                          className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-lg shadow-green-500/30 flex items-center justify-center"
                         >
                           {i === 0 && <FaGraduationCap className="w-4 h-4 text-white" />}
                           {i === 1 && <FaDatabase className="w-4 h-4 text-white" />}
@@ -702,7 +712,7 @@ function App() {
                     ))}
                     
                     {/* Inner glow */}
-                    <div className="absolute inset-4 bg-gradient-to-br from-white/50 to-transparent rounded-full" />
+                    <div className="absolute inset-4 bg-gradient-to-br from-white/20 to-transparent rounded-full" />
                   </div>
                 </div>
                 
@@ -994,22 +1004,23 @@ function App() {
         viewport={{ once: true, amount: 0.2 }}
         variants={staggerContainer}
       >
-        {/* Section background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-green-50/30 to-transparent pointer-events-none" />
+        {/* Section background decoration - Dark theme */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-gray-900 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-green-900/10 via-transparent to-transparent" />
         
         <div className="max-w-7xl mx-auto relative">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <motion.span 
-              className="inline-flex items-center gap-2 text-xs bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-4 py-2 rounded-full font-medium mb-4 border border-green-200"
+              className="inline-flex items-center gap-2 text-xs bg-green-500/10 text-green-400 px-4 py-2 rounded-full font-medium mb-4 border border-green-500/30"
               whileHover={{ scale: 1.05 }}
             >
               <FaCube className="w-3 h-3" />
               PLATFORM FEATURES
             </motion.span>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              Complete Development <span className="gradient-text">Ecosystem</span>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+              Complete Development <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">Ecosystem</span>
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
               AI Professor, Obsidian knowledge base, Git server, and Spark infrastructure. Everything you need from learning to deployment.
             </p>
           </motion.div>
@@ -1018,37 +1029,37 @@ function App() {
             {ecosystemFeatures.map((feature, index) => (
               <Card3D key={index}>
                 <motion.div
-                  className="group bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-100/50 hover:border-green-200/50 shadow-xl hover:shadow-2xl transition-all relative overflow-hidden"
+                  className="group bg-gray-900/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-800 hover:border-green-500/30 shadow-xl shadow-black/20 hover:shadow-green-500/10 transition-all relative overflow-hidden"
                   variants={index % 2 === 0 ? fadeInLeft : fadeInRight}
                   whileHover={{ y: -8 }}
                 >
                   {/* Card glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-100/0 via-transparent to-emerald-100/0 group-hover:from-green-100/30 group-hover:to-emerald-100/20 transition-all duration-500 rounded-3xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/0 via-transparent to-emerald-500/0 group-hover:from-green-500/5 group-hover:to-emerald-500/5 transition-all duration-500 rounded-3xl" />
                   
                   <div className="relative z-10">
                     <div className="flex items-start justify-between mb-6">
                       <motion.div 
-                        className={`${feature.bgColor} rounded-2xl p-5 inline-block shadow-lg`}
+                        className="bg-gray-800/80 rounded-2xl p-5 inline-block shadow-lg border border-gray-700/50"
                         whileHover={{ rotate: 5, scale: 1.1 }}
                         transition={{ type: "spring", stiffness: 300 }}
                       >
                         <div className="flex items-center gap-4">
-                          <div className={`${feature.iconBg} text-white p-3 rounded-xl shadow-lg`}>
+                          <div className={`${feature.iconBg} text-white p-3 rounded-xl shadow-lg shadow-green-500/20`}>
                             {React.cloneElement(feature.icon, { className: 'w-7 h-7' })}
                           </div>
                           {index === 0 && (
                             <motion.div 
-                              className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-200 rounded-xl flex items-center justify-center shadow-md"
+                              className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center border border-green-500/30"
                               animate={{ rotate: [0, 10, 0] }}
                               transition={{ duration: 3, repeat: Infinity }}
                             >
-                              <FaUsers className="w-6 h-6 text-green-600" />
+                              <FaUsers className="w-6 h-6 text-green-400" />
                             </motion.div>
                           )}
                         </div>
                       </motion.div>
                       <motion.span 
-                        className={`text-xs ${feature.statusColor} px-3 py-1.5 rounded-full font-medium shadow-sm`}
+                        className={`text-xs px-3 py-1.5 rounded-full font-medium ${feature.status === 'IN DEVELOPMENT' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-gray-700/50 text-gray-400 border border-gray-600'}`}
                         whileHover={{ scale: 1.1 }}
                       >
                         {feature.status}
@@ -1056,24 +1067,24 @@ function App() {
                     </div>
                     
                     <div className="flex items-center gap-3 mb-4">
-                      <div className={`${feature.iconBg} text-white p-2 rounded-lg shadow-md`}>
+                      <div className={`${feature.iconBg} text-white p-2 rounded-lg shadow-md shadow-green-500/20`}>
                         {React.cloneElement(feature.icon, { className: 'w-5 h-5' })}
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900">{feature.title}</h3>
+                      <h3 className="text-2xl font-bold text-white">{feature.title}</h3>
                     </div>
                     
-                    <p className="text-gray-600 mb-6 leading-relaxed">{feature.description}</p>
+                    <p className="text-gray-400 mb-6 leading-relaxed">{feature.description}</p>
                     
                     <ul className="space-y-3">
                       {feature.bullets.map((bullet, bulletIndex) => (
                         <motion.li 
                           key={bulletIndex} 
-                          className="flex items-center gap-3 text-gray-600"
+                          className="flex items-center gap-3 text-gray-400"
                           initial={{ opacity: 0, x: -10 }}
                           whileInView={{ opacity: 1, x: 0 }}
                           transition={{ delay: bulletIndex * 0.1 }}
                         >
-                          <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-500/30">
                             <FaCheck className="w-2.5 h-2.5 text-white" />
                           </div>
                           {bullet}
@@ -1097,11 +1108,11 @@ function App() {
         variants={staggerContainer}
       >
         {/* Dark gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-black to-gray-950" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-green-900/20 via-transparent to-transparent" />
         
         {/* Animated grid pattern */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(34, 197, 94, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 197, 94, 0.3) 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(34, 197, 94, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 197, 94, 0.3) 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
         
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
@@ -1230,19 +1241,22 @@ function App() {
         viewport={{ once: true, amount: 0.2 }}
         variants={staggerContainer}
       >
-        <div className="max-w-7xl mx-auto">
+        {/* Dark background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-950 to-black" />
+        
+        <div className="max-w-7xl mx-auto relative z-10">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <motion.span 
-              className="inline-flex items-center gap-2 text-xs bg-gradient-to-r from-red-100 to-orange-100 text-red-600 px-4 py-2 rounded-full font-medium mb-4 border border-red-200"
+              className="inline-flex items-center gap-2 text-xs bg-orange-500/20 text-orange-400 px-4 py-2 rounded-full font-medium mb-4 border border-orange-500/30"
               whileHover={{ scale: 1.05 }}
             >
               <FaGithub className="w-3 h-3" />
               INFRASTRUCTURE
             </motion.span>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              Git Server + <span className="gradient-text">Project Management</span>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+              Git Server + <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">Project Management</span>
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
               Self-hosted Git server with integrated project management. Everything you need from day one, scales as you grow.
             </p>
           </motion.div>
@@ -1251,22 +1265,22 @@ function App() {
             {infrastructureFeatures.map((feature, index) => (
               <Card3D key={index}>
                 <motion.div
-                  className="group bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-gray-100/50 shadow-xl hover:shadow-2xl transition-all text-center relative overflow-hidden h-full"
+                  className="group bg-gray-900/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-800 hover:border-green-500/30 shadow-xl shadow-black/20 hover:shadow-green-500/10 transition-all text-center relative overflow-hidden h-full"
                   variants={fadeInUp}
                   whileHover={{ y: -10 }}
                 >
                   {/* Hover glow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-green-50/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
                   
                   <motion.div 
-                    className="w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg relative z-10"
+                    className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg border border-gray-700/50 relative z-10"
                     whileHover={{ rotate: 10, scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     {feature.icon}
                   </motion.div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 relative z-10">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed relative z-10">{feature.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-3 relative z-10">{feature.title}</h3>
+                  <p className="text-gray-400 leading-relaxed relative z-10">{feature.description}</p>
                 </motion.div>
               </Card3D>
             ))}
@@ -1282,15 +1296,15 @@ function App() {
         viewport={{ once: true, amount: 0.1 }}
         variants={staggerContainer}
       >
-        {/* Background decorations */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 via-green-50/30 to-gray-50" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-200/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-200/30 rounded-full blur-3xl" />
+        {/* Background decorations - Dark theme */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-gray-900" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
         
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <motion.span 
-              className="inline-flex items-center gap-2 text-xs bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full font-medium mb-4 shadow-lg"
+              className="inline-flex items-center gap-2 text-xs bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full font-medium mb-4 shadow-lg shadow-green-500/25"
               whileHover={{ scale: 1.05 }}
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -1298,10 +1312,10 @@ function App() {
               <FaRocket className="w-3 h-3" />
               PRE-SALE PRICING
             </motion.span>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              Everyone Deserves <span className="gradient-text">Excellence</span>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+              Everyone Deserves <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">Excellence</span>
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
               Affordable access to world-class AI mentorship. Lock in pre-sale pricing before we launch.
             </p>
           </motion.div>
@@ -1310,7 +1324,7 @@ function App() {
             {pricingPlans.map((plan, index) => (
               <Card3D key={index}>
                 <motion.div
-                  className={`relative bg-white/90 backdrop-blur-sm rounded-3xl p-8 border-2 ${plan.highlight ? 'border-green-400 shadow-2xl shadow-green-500/20' : 'border-gray-100/50 shadow-xl'} h-full`}
+                  className={`relative bg-gray-900/80 backdrop-blur-xl rounded-3xl p-8 border ${plan.highlight ? 'border-green-500/50 shadow-2xl shadow-green-500/20' : 'border-gray-800 shadow-xl'} h-full`}
                   variants={fadeInUp}
                   whileHover={{ y: -10 }}
                 >
@@ -1320,23 +1334,23 @@ function App() {
                       animate={{ y: [0, -3, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                      <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-green-500/30 flex items-center gap-1">
                         <FaStar className="w-3 h-3" />
                         POPULAR
                       </span>
                     </motion.div>
                   )}
                   
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{plan.name}</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">{plan.name}</h3>
                   <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-4xl font-bold gradient-text">{plan.price}</span>
+                    <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">{plan.price}</span>
                     <span className="text-gray-500">{plan.period}</span>
                   </div>
                   {plan.originalPrice && (
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-sm text-gray-400 line-through">{plan.originalPrice}</span>
+                      <span className="text-sm text-gray-500 line-through">{plan.originalPrice}</span>
                       <motion.span 
-                        className="text-xs bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-2 py-1 rounded-full font-bold"
+                        className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-bold border border-green-500/30"
                         animate={{ scale: [1, 1.1, 1] }}
                         transition={{ duration: 1.5, repeat: Infinity }}
                       >
@@ -1344,18 +1358,18 @@ function App() {
                       </motion.span>
                     </div>
                   )}
-                  <p className="text-gray-600 mb-6">{plan.description}</p>
+                  <p className="text-gray-400 mb-6">{plan.description}</p>
                   
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, featureIndex) => (
                       <motion.li 
                         key={featureIndex} 
-                        className="flex items-center gap-3 text-gray-600"
+                        className="flex items-center gap-3 text-gray-400"
                         initial={{ opacity: 0, x: -10 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ delay: featureIndex * 0.1 }}
                       >
-                        <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-500/20">
                           <FaCheck className="w-2.5 h-2.5 text-white" />
                         </div>
                         <span className="text-sm">{feature}</span>
@@ -1365,13 +1379,13 @@ function App() {
                   
                   <motion.button 
                     onClick={plan.name === 'Beginner Developer' ? handleJoinPresale : undefined}
-                    className={`w-full py-3.5 px-4 rounded-xl font-semibold transition-all ${plan.highlight ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:shadow-xl' : 'border-2 border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50'}`}
+                    className={`w-full py-3.5 px-4 rounded-xl font-semibold transition-all ${plan.highlight ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25 hover:shadow-green-500/40' : 'border border-gray-700 text-gray-300 hover:border-green-500/50 hover:bg-green-500/10'}`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     {plan.buttonText}
                   </motion.button>
-                  <p className={`text-xs ${plan.availableColor} mt-4 text-center font-bold`}>{plan.available}</p>
+                  <p className={`text-xs mt-4 text-center font-bold ${plan.highlight ? 'text-green-400' : 'text-gray-500'}`}>{plan.available}</p>
                 </motion.div>
               </Card3D>
             ))}
@@ -1387,37 +1401,40 @@ function App() {
         viewport={{ once: true, amount: 0.3 }}
         variants={staggerContainer}
       >
+        {/* Dark background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-950 to-black" />
+        
         <div className="max-w-5xl mx-auto relative">
           {/* Decorative elements */}
           <motion.div 
-            className="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-green-200/50 to-emerald-300/50 rounded-full blur-3xl"
+            className="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full blur-3xl"
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 4, repeat: Infinity }}
           />
           <motion.div 
-            className="absolute -bottom-10 -right-10 w-48 h-48 bg-gradient-to-br from-emerald-200/50 to-teal-300/50 rounded-full blur-3xl"
+            className="absolute -bottom-10 -right-10 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-full blur-3xl"
             animate={{ scale: [1, 1.3, 1] }}
             transition={{ duration: 5, repeat: Infinity, delay: 1 }}
           />
           
           <Card3D>
-            <div className="bg-gradient-to-br from-gray-50 via-white to-green-50/50 rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-gray-100/50 shadow-2xl">
+            <div className="bg-gradient-to-br from-gray-900/90 via-gray-800/90 to-gray-900/90 rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-green-500/20 shadow-2xl shadow-green-500/10 backdrop-blur-xl">
               {/* Animated gradient border */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-400/10 via-emerald-500/10 to-teal-400/10 animate-gradient" />
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-500/5 via-emerald-500/5 to-teal-500/5 animate-gradient" />
               
               <motion.div variants={fadeInUp} className="relative z-10">
                 <motion.span 
-                  className="inline-flex items-center gap-2 text-green-600 text-sm font-medium mb-6 bg-green-50 px-4 py-2 rounded-full border border-green-200"
+                  className="inline-flex items-center gap-2 text-green-400 text-sm font-medium mb-6 bg-green-500/10 px-4 py-2 rounded-full border border-green-500/30"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   <FaRocket className="w-4 h-4 animate-bounce" />
                   JOIN WAITLIST
                 </motion.span>
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-                  Be Among <span className="gradient-text">The First</span>
+                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+                  Be Among <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">The First</span>
                 </h2>
-                <p className="text-gray-600 mb-10 max-w-2xl mx-auto text-lg leading-relaxed">
+                <p className="text-gray-400 mb-10 max-w-2xl mx-auto text-lg leading-relaxed">
                   Join the waitlist for early access when we launch. Lock in exclusive pre-sale pricing and be notified first when platform goes live.
                 </p>
                 
@@ -1428,13 +1445,13 @@ function App() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
                     required
-                    className="px-6 py-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 w-full sm:w-96 shadow-lg transition-all"
+                    className="px-6 py-4 rounded-xl border border-gray-700 bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-white placeholder-gray-500 w-full sm:w-96 shadow-lg transition-all"
                     whileFocus={{ scale: 1.02 }}
                   />
                   <motion.button
                     type="submit"
                     disabled={isSubmitting}
-                    className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 text-white font-semibold py-4 px-8 rounded-xl transition-all disabled:opacity-50 shadow-xl hover:shadow-2xl overflow-hidden"
+                    className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 text-white font-semibold py-4 px-8 rounded-xl transition-all disabled:opacity-50 shadow-xl shadow-green-500/25 hover:shadow-green-500/40 overflow-hidden"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -1446,7 +1463,7 @@ function App() {
                 
                 {waitlistMessage && (
                   <motion.p
-                    className="text-green-700 font-medium mb-6 bg-green-50 px-4 py-2 rounded-lg inline-block"
+                    className="text-green-400 font-medium mb-6 bg-green-500/10 px-4 py-2 rounded-lg inline-block border border-green-500/30"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
@@ -1454,7 +1471,7 @@ function App() {
                   </motion.p>
                 )}
                 
-                <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-600">
+                <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-400">
                   {['No commitment required', 'Early access notification', 'Exclusive pre-sale pricing'].map((text, idx) => (
                     <motion.span 
                       key={idx}
@@ -1463,7 +1480,7 @@ function App() {
                       whileInView={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.1 }}
                     >
-                      <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+                      <div className="w-5 h-5 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30">
                         <FaCheck className="w-2.5 h-2.5 text-white" />
                       </div>
                       {text}
@@ -1484,28 +1501,28 @@ function App() {
         viewport={{ once: true, amount: 0.1 }}
         variants={staggerContainer}
       >
-        {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
+        {/* Background - Dark theme */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-gray-900" />
         
         <div className="max-w-5xl mx-auto relative z-10">
           <motion.div className="text-center mb-16" variants={fadeInUp}>
             <motion.span 
-              className="inline-flex items-center gap-2 text-xs bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 px-4 py-2 rounded-full font-medium mb-4 border border-amber-200"
+              className="inline-flex items-center gap-2 text-xs bg-amber-500/20 text-amber-400 px-4 py-2 rounded-full font-medium mb-4 border border-amber-500/30"
               whileHover={{ scale: 1.05 }}
             >
               FAQ
             </motion.span>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              Frequently Asked <span className="gradient-text-gold">Questions</span>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+              Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">Questions</span>
             </h2>
-            <p className="text-gray-600 text-lg">Everything you need to know about Netbit platform</p>
+            <p className="text-gray-400 text-lg">Everything you need to know about Netbit platform</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {faqs.map((faq, index) => (
               <Card3D key={index}>
                 <motion.div
-                  className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-100/50 shadow-xl hover:shadow-2xl transition-all h-full"
+                  className="bg-gray-900/80 backdrop-blur-xl rounded-2xl p-6 border border-gray-800 hover:border-green-500/30 shadow-xl hover:shadow-green-500/10 transition-all h-full"
                   variants={fadeInUp}
                   whileHover={{ y: -5 }}
                 >
@@ -1514,16 +1531,16 @@ function App() {
                     className="flex items-start gap-4 w-full text-left"
                   >
                     <motion.div 
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${
-                        index % 2 === 0 ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white' : 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${
+                        index % 2 === 0 ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-green-500/30' : 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-amber-500/30'
                       }`}
                       whileHover={{ rotate: 10, scale: 1.1 }}
                     >
                       <span className="text-lg font-bold">?</span>
                     </motion.div>
                     <div>
-                      <h3 className="font-bold text-gray-900 mb-2 text-lg">{faq.question}</h3>
-                      <p className={`text-gray-600 leading-relaxed ${openFaq === index ? '' : 'line-clamp-2'}`}>
+                      <h3 className="font-bold text-white mb-2 text-lg">{faq.question}</h3>
+                      <p className={`text-gray-400 leading-relaxed ${openFaq === index ? '' : 'line-clamp-2'}`}>
                         {faq.answer}
                       </p>
                     </div>
@@ -1535,10 +1552,10 @@ function App() {
         </div>
       </motion.section>
 
-      {/* Footer */}
+      {/* Footer - Dark theme */}
       <footer className="px-6 py-16 relative overflow-hidden">
         {/* Footer background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black" />
         <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-400" />
         
         <div className="max-w-7xl mx-auto relative z-10">
@@ -1552,19 +1569,19 @@ function App() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <motion.div 
-                  className="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl glow-green"
+                  className="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl shadow-green-500/30"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
                   <span className="text-white font-bold text-2xl">N</span>
                 </motion.div>
                 <div>
-                  <span className="font-bold text-2xl gradient-text">Netbit</span>
+                  <span className="font-bold text-2xl text-white">Netbit</span>
                   <p className="text-gray-500">Everyone deserves a great professor</p>
                 </div>
               </div>
-              <p className="text-gray-600 mb-2">Created by Veloro</p>
-              <p className="text-gray-600 mb-2">Special thanks to Kazilsky · 2025</p>
-              <p className="text-gray-600">general@veloro.su</p>
+              <p className="text-gray-500 mb-2">Created by Veloro</p>
+              <p className="text-gray-500 mb-2">Special thanks to Kazilsky · 2025</p>
+              <p className="text-gray-500">general@veloro.su</p>
             </motion.div>
 
             {/* Platform */}
@@ -1574,7 +1591,7 @@ function App() {
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              <h4 className="font-bold text-gray-900 mb-6">Platform</h4>
+              <h4 className="font-bold text-white mb-6">Platform</h4>
               <ul className="space-y-3">
                 {footerLinks.platform.map((link, index) => (
                   <motion.li 
@@ -1582,8 +1599,8 @@ function App() {
                     className="flex items-center gap-2"
                     whileHover={{ x: 5 }}
                   >
-                    <span className="text-gray-600 hover:text-green-600 cursor-pointer transition-colors">{link.name}</span>
-                    <span className="text-xs bg-gradient-to-r from-gray-100 to-gray-200 text-gray-500 px-2 py-0.5 rounded-full">{link.badge}</span>
+                    <span className="text-gray-400 hover:text-green-400 cursor-pointer transition-colors">{link.name}</span>
+                    <span className="text-xs bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full border border-gray-700">{link.badge}</span>
                   </motion.li>
                 ))}
               </ul>
@@ -1596,7 +1613,7 @@ function App() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <h4 className="font-bold text-gray-900 mb-6">Company</h4>
+              <h4 className="font-bold text-white mb-6">Company</h4>
               <ul className="space-y-3">
                 {footerLinks.company.map((link, index) => (
                   <motion.li 
@@ -1604,8 +1621,8 @@ function App() {
                     className="flex items-center gap-2"
                     whileHover={{ x: 5 }}
                   >
-                    <span className="text-gray-600 hover:text-green-600 cursor-pointer transition-colors">{link.name}</span>
-                    <span className="text-xs bg-gradient-to-r from-gray-100 to-gray-200 text-gray-500 px-2 py-0.5 rounded-full">{link.badge}</span>
+                    <span className="text-gray-400 hover:text-green-400 cursor-pointer transition-colors">{link.name}</span>
+                    <span className="text-xs bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full border border-gray-700">{link.badge}</span>
                   </motion.li>
                 ))}
               </ul>
@@ -1618,7 +1635,7 @@ function App() {
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              <h4 className="font-bold text-gray-900 mb-6">Resources</h4>
+              <h4 className="font-bold text-white mb-6">Resources</h4>
               <ul className="space-y-3">
                 {footerLinks.resources.map((link, index) => (
                   <motion.li 
@@ -1626,8 +1643,8 @@ function App() {
                     className="flex items-center gap-2"
                     whileHover={{ x: 5 }}
                   >
-                    <span className="text-gray-600 hover:text-green-600 cursor-pointer transition-colors">{link.name}</span>
-                    <span className="text-xs bg-gradient-to-r from-gray-100 to-gray-200 text-gray-500 px-2 py-0.5 rounded-full">{link.badge}</span>
+                    <span className="text-gray-400 hover:text-green-400 cursor-pointer transition-colors">{link.name}</span>
+                    <span className="text-xs bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full border border-gray-700">{link.badge}</span>
                   </motion.li>
                 ))}
               </ul>
@@ -1635,7 +1652,7 @@ function App() {
           </div>
 
           <motion.div 
-            className="border-t border-gray-200 pt-10 flex flex-col md:flex-row items-center justify-between gap-6"
+            className="border-t border-gray-800 pt-10 flex flex-col md:flex-row items-center justify-between gap-6"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -1643,13 +1660,13 @@ function App() {
             <p className="text-gray-500">&copy; {new Date().getFullYear()} Veloro. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <motion.button 
-                className="text-gray-600 hover:text-green-600 transition-colors font-medium"
+                className="text-gray-400 hover:text-green-400 transition-colors font-medium"
                 whileHover={{ scale: 1.05 }}
               >
                 DevPath Pro
               </motion.button>
               <motion.button 
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-gray-800 to-gray-900 text-white py-2.5 px-5 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2.5 px-5 rounded-xl shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
