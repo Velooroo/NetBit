@@ -592,6 +592,400 @@ function App() {
         </div>
       </motion.section>
 
+      {/* 3D Product Showcase - Spline Ready Section */}
+      <motion.section
+        className="px-6 py-20 md:py-32 relative overflow-hidden"
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={staggerContainer}
+      >
+        {/* Aurora background */}
+        <div className="absolute inset-0 aurora-bg" />
+        
+        {/* Animated particles */}
+        <div className="particles-container">
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-green-400/60 rounded-full"
+              style={{
+                left: `${10 + (i * 7)}%`,
+                top: `${20 + (i % 3) * 25}%`,
+              }}
+              animate={{
+                y: [0, -40, 0],
+                x: [0, 20, 0],
+                scale: [1, 1.5, 1],
+                opacity: [0.4, 1, 0.4],
+              }}
+              transition={{
+                duration: 4 + (i % 3),
+                repeat: Infinity,
+                delay: i * 0.3,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <motion.div className="text-center mb-16" variants={fadeInUp}>
+            <motion.span 
+              className="inline-flex items-center gap-2 text-xs bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-600 px-4 py-2 rounded-full font-medium mb-4 border border-green-300/50 backdrop-blur-sm"
+              whileHover={{ scale: 1.05 }}
+            >
+              <FaCube className="w-3 h-3" />
+              3D PRODUCT SHOWCASE
+            </motion.span>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
+              Experience <span className="gradient-text animate-text-gradient">Netbit</span> In 3D
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+              Interactive 3D visualizations of our platform. Explore the future of AI-powered learning.
+            </p>
+          </motion.div>
+
+          {/* Main 3D Showcase Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+            {/* AI Professor 3D Model Placeholder */}
+            <Card3D>
+              <motion.div 
+                className="spline-container rounded-3xl border border-green-200/50 shadow-2xl relative group"
+                variants={fadeInLeft}
+                whileHover={{ scale: 1.02 }}
+              >
+                {/* Spline embed placeholder - replace with actual Spline embed */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {/* Animated 3D placeholder */}
+                  <div className="scene-3d relative w-48 h-48">
+                    {/* Central orb */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full animate-glow-pulse"
+                      animate={{ 
+                        scale: [1, 1.1, 1],
+                        rotate: [0, 180, 360]
+                      }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    />
+                    
+                    {/* Orbiting elements */}
+                    {[0, 120, 240].map((angle, i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute w-8 h-8 bg-gradient-to-br from-white to-green-100 rounded-xl shadow-lg"
+                        style={{
+                          top: '50%',
+                          left: '50%',
+                          marginTop: '-16px',
+                          marginLeft: '-16px',
+                        }}
+                        animate={{
+                          rotate: [angle, angle + 360],
+                        }}
+                        transition={{
+                          duration: 6 + i,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      >
+                        <motion.div
+                          style={{
+                            transform: `translateX(80px)`,
+                          }}
+                          className="w-8 h-8 bg-gradient-to-br from-green-300 to-emerald-400 rounded-lg shadow-md flex items-center justify-center"
+                        >
+                          {i === 0 && <FaGraduationCap className="w-4 h-4 text-white" />}
+                          {i === 1 && <FaDatabase className="w-4 h-4 text-white" />}
+                          {i === 2 && <FaRocket className="w-4 h-4 text-white" />}
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                    
+                    {/* Inner glow */}
+                    <div className="absolute inset-4 bg-gradient-to-br from-white/50 to-transparent rounded-full" />
+                  </div>
+                </div>
+                
+                {/* Label */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <motion.div 
+                    className="glass rounded-xl p-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                  >
+                    <h3 className="font-bold text-gray-900 mb-1">AI Professor</h3>
+                    <p className="text-sm text-gray-600">Interactive learning companion with memory & emotions</p>
+                    <span className="text-xs text-green-600 font-medium mt-2 inline-block">
+                      {/* TODO: Replace with Spline scene URL */}
+                      🎨 Spline: "Friendly AI robot professor, isometric, green glow, floating books"
+                    </span>
+                  </motion.div>
+                </div>
+                
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
+              </motion.div>
+            </Card3D>
+
+            {/* Obsidian Knowledge Base 3D Placeholder */}
+            <Card3D>
+              <motion.div 
+                className="spline-container rounded-3xl border border-gray-200/50 shadow-2xl relative group"
+                style={{ background: 'linear-gradient(135deg, rgba(31, 41, 55, 0.05) 0%, rgba(17, 24, 39, 0.1) 100%)' }}
+                variants={fadeInRight}
+                whileHover={{ scale: 1.02 }}
+              >
+                {/* Knowledge graph visualization placeholder */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative w-64 h-64">
+                    {/* Central node */}
+                    <motion.div
+                      className="absolute top-1/2 left-1/2 w-16 h-16 -mt-8 -ml-8 bg-gradient-to-br from-gray-700 to-gray-900 rounded-2xl shadow-2xl flex items-center justify-center"
+                      animate={{ rotate: [0, 5, 0, -5, 0] }}
+                      transition={{ duration: 4, repeat: Infinity }}
+                    >
+                      <FaDatabase className="w-8 h-8 text-green-400" />
+                    </motion.div>
+                    
+                    {/* Connected nodes */}
+                    {[
+                      { x: -80, y: -60, icon: '📝', delay: 0 },
+                      { x: 80, y: -60, icon: '🧠', delay: 0.5 },
+                      { x: -80, y: 60, icon: '📚', delay: 1 },
+                      { x: 80, y: 60, icon: '💡', delay: 1.5 },
+                      { x: 0, y: -90, icon: '🔗', delay: 2 },
+                      { x: 0, y: 90, icon: '⚡', delay: 2.5 },
+                    ].map((node, i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute top-1/2 left-1/2 w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center text-lg"
+                        style={{
+                          marginTop: '-20px',
+                          marginLeft: '-20px',
+                          x: node.x,
+                          y: node.y,
+                        }}
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          y: [node.y, node.y - 10, node.y],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          delay: node.delay,
+                        }}
+                      >
+                        {node.icon}
+                      </motion.div>
+                    ))}
+                    
+                    {/* Connection lines (SVG) */}
+                    <svg className="absolute inset-0 w-full h-full" style={{ zIndex: -1 }}>
+                      {[
+                        { x1: 128, y1: 128, x2: 48, y2: 68 },
+                        { x1: 128, y1: 128, x2: 208, y2: 68 },
+                        { x1: 128, y1: 128, x2: 48, y2: 188 },
+                        { x1: 128, y1: 128, x2: 208, y2: 188 },
+                        { x1: 128, y1: 128, x2: 128, y2: 38 },
+                        { x1: 128, y1: 128, x2: 128, y2: 218 },
+                      ].map((line, i) => (
+                        <motion.line
+                          key={i}
+                          x1={line.x1}
+                          y1={line.y1}
+                          x2={line.x2}
+                          y2={line.y2}
+                          stroke="rgba(34, 197, 94, 0.3)"
+                          strokeWidth="2"
+                          strokeDasharray="5,5"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 2, delay: i * 0.2 }}
+                        />
+                      ))}
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Label */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <motion.div 
+                    className="glass-dark rounded-xl p-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                  >
+                    <h3 className="font-bold text-white mb-1">Obsidian Knowledge Base</h3>
+                    <p className="text-sm text-gray-300">Connected thinking with triple vault system</p>
+                    <span className="text-xs text-green-400 font-medium mt-2 inline-block">
+                      🎨 Spline: "3D knowledge graph, floating nodes, dark theme, green connections"
+                    </span>
+                  </motion.div>
+                </div>
+              </motion.div>
+            </Card3D>
+          </div>
+
+          {/* Interactive Device Farm Visualization */}
+          <Card3D className="w-full">
+            <motion.div 
+              className="relative rounded-3xl overflow-hidden border border-green-200/30 shadow-2xl"
+              style={{ 
+                background: 'linear-gradient(180deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.9) 100%)',
+                minHeight: '400px'
+              }}
+              variants={fadeInUp}
+            >
+              {/* Cyber grid background */}
+              <div className="absolute inset-0 cyber-grid opacity-30" />
+              
+              {/* Glow effects */}
+              <div className="absolute top-0 left-1/4 w-64 h-64 bg-green-500/10 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
+              
+              {/* Content */}
+              <div className="relative z-10 p-8 md:p-12">
+                <div className="flex flex-col lg:flex-row items-center gap-12">
+                  {/* Left: Device visualization */}
+                  <div className="flex-1 flex justify-center">
+                    <div className="relative">
+                      {/* Central server */}
+                      <motion.div
+                        className="w-24 h-32 bg-gradient-to-b from-gray-700 to-gray-800 rounded-xl shadow-2xl border border-gray-600 flex flex-col items-center justify-center gap-2"
+                        animate={{ y: [0, -10, 0] }}
+                        transition={{ duration: 4, repeat: Infinity }}
+                      >
+                        <div className="w-16 h-2 bg-green-500 rounded animate-pulse" />
+                        <div className="w-16 h-2 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.2s' }} />
+                        <div className="w-16 h-2 bg-emerald-500 rounded animate-pulse" style={{ animationDelay: '0.4s' }} />
+                        <FaTerminal className="w-6 h-6 text-green-400 mt-2" />
+                      </motion.div>
+                      
+                      {/* Connected devices */}
+                      {[
+                        { x: -120, y: -40, label: 'Raspberry Pi' },
+                        { x: 120, y: -40, label: 'Orange Pi' },
+                        { x: -120, y: 80, label: 'IoT Device' },
+                        { x: 120, y: 80, label: 'Edge Server' },
+                      ].map((device, i) => (
+                        <motion.div
+                          key={i}
+                          className="absolute w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg shadow-lg border border-gray-500 flex items-center justify-center"
+                          style={{
+                            top: '50%',
+                            left: '50%',
+                            marginTop: '-32px',
+                            marginLeft: '-32px',
+                            x: device.x,
+                            y: device.y,
+                          }}
+                          animate={{
+                            scale: [1, 1.05, 1],
+                            boxShadow: [
+                              '0 0 0 rgba(34, 197, 94, 0)',
+                              '0 0 20px rgba(34, 197, 94, 0.5)',
+                              '0 0 0 rgba(34, 197, 94, 0)',
+                            ],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: i * 0.5,
+                          }}
+                        >
+                          <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                        </motion.div>
+                      ))}
+                      
+                      {/* Connection lines */}
+                      <svg className="absolute inset-0 w-full h-full" style={{ left: '-150px', top: '-50px', width: '400px', height: '250px' }}>
+                        {[
+                          { x1: 200, y1: 125, x2: 80, y2: 85 },
+                          { x1: 200, y1: 125, x2: 320, y2: 85 },
+                          { x1: 200, y1: 125, x2: 80, y2: 205 },
+                          { x1: 200, y1: 125, x2: 320, y2: 205 },
+                        ].map((line, i) => (
+                          <motion.line
+                            key={i}
+                            x1={line.x1}
+                            y1={line.y1}
+                            x2={line.x2}
+                            y2={line.y2}
+                            stroke="rgba(34, 197, 94, 0.6)"
+                            strokeWidth="2"
+                            initial={{ pathLength: 0 }}
+                            animate={{ 
+                              pathLength: [0, 1, 1],
+                              opacity: [0.3, 1, 0.3],
+                            }}
+                            transition={{ 
+                              duration: 3, 
+                              repeat: Infinity,
+                              delay: i * 0.3,
+                            }}
+                          />
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  {/* Right: Info */}
+                  <div className="flex-1 text-center lg:text-left">
+                    <motion.span 
+                      className="inline-flex items-center gap-2 text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded-full font-medium mb-4"
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <FaBolt className="w-3 h-3" />
+                      SPARK DEPLOYMENT
+                    </motion.span>
+                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                      Deploy to <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">Unlimited Devices</span>
+                    </h3>
+                    <p className="text-gray-400 mb-6">
+                      Visualize your entire device farm in real-time. One-command deployment to Raspberry Pi, Orange Pi, and ARM devices.
+                    </p>
+                    <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                      {['Real-time Status', 'Auto-scaling', 'Edge Computing'].map((tag, i) => (
+                        <motion.span
+                          key={i}
+                          className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-full text-sm border border-gray-600"
+                          whileHover={{ scale: 1.1, borderColor: 'rgba(34, 197, 94, 0.5)' }}
+                        >
+                          {tag}
+                        </motion.span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-green-400 font-medium mt-6">
+                      🎨 Spline: "3D server rack with connected IoT devices, green data streams, dark futuristic theme"
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </Card3D>
+
+          {/* Spline Integration Instructions */}
+          <motion.div 
+            className="mt-12 text-center"
+            variants={fadeInUp}
+          >
+            <div className="glass rounded-2xl p-6 max-w-2xl mx-auto border border-green-200/30">
+              <h4 className="font-bold text-gray-900 mb-2">🚀 Ready for Spline Integration</h4>
+              <p className="text-sm text-gray-600 mb-4">
+                These placeholders are designed to be replaced with Spline 3D scenes. Each section includes suggested prompts for creating matching 3D models.
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {['@splinetool/react-spline', 'Interactive 3D', 'WebGL Optimized'].map((tag, i) => (
+                  <span key={i} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
       {/* Platform Features - Ecosystem */}
       <motion.section
         className="px-6 py-20 md:py-32 relative"
