@@ -1,17 +1,9 @@
-use actix_web::{HttpResponse};
-use rusqlite::;
+pub mod packages;
+pub mod units;
+pub mod telemetry;
 
-struct Package {
-    id: i32,
-    name: String,
-    owner_id: i64,
-}
+use actix_web::HttpResponse;
 
 pub async fn health() -> HttpResponse {
-    HttpResponse::Ok().body("Health OK!")
+    HttpResponse::Ok().body("Spark API is healthy!")
 }
-
-pub async fn package_check() -> HttpResponse {
-    HttpResponse::Ok()
-        .body()
-} 

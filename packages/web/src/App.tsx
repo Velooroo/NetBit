@@ -1,370 +1,110 @@
-import React, { useState, FormEvent } from 'react';
-import { motion } from 'framer-motion';
-import { BrowserProvider, parseEther } from 'ethers';
-import { 
-  FaGraduationCap, 
-  FaCheckCircle, 
-  FaDatabase, 
-  FaComments, 
-  FaGithub, 
-  FaProjectDiagram, 
-  FaUsers, 
-  FaCheck,
-  FaArrowRight,
-  FaRocket,
-  FaStar
-} from 'react-icons/fa';
-import './index.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-      isMetaMask?: boolean;
-    };
+import { useAuth } from "./context/AuthContext";
+import AuthPage from "./pages/AuthPage";
+import DashboardPage from "./pages/DashboardPage";
+import WorkspacePage from "./pages/WorkspacePage";
+import ArchivePage from "./pages/ArchivePage";
+import CommunityPage from "./pages/CommunityPage";
+import SettingsPage from "./pages/SettingsPage";
+import StoriesPage from "./pages/StoriesPage";
+
+const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({
+  children,
+}) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-12 w-12 rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin" />
+          <p className="text-sm uppercase tracking-wide text-slate-400">
+            Загрузка рабочего пространства
+          </p>
+        </div>
+      </div>
+    );
   }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />}
+      />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workspace/:projectId"
+        element={
+          <ProtectedRoute>
+            <WorkspacePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workspace/new"
+        element={
+          <ProtectedRoute>
+            <WorkspacePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/archive"
+        element={
+          <ProtectedRoute>
+            <ArchivePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/community"
+        element={
+          <ProtectedRoute>
+            <CommunityPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stories"
+        element={
+          <ProtectedRoute>
+            <StoriesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+    </Routes>
+  );
 }
 
-// TODO: Replace with actual presale contract address before production launch
-const PRESALE_ADDRESS = '0x0000000000000000000000000000000000000000';
-const PRESALE_AMOUNT = '0.05';
-
 function App() {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [waitlistMessage, setWaitlistMessage] = useState<string | null>(null);
-  const [isJoiningPresale, setIsJoiningPresale] = useState(false);
-  const [presaleStatus, setPresaleStatus] = useState<string | null>(null);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  const handleJoinPresale = async () => {
-    if (!window.ethereum) {
-      setPresaleStatus('Please install MetaMask to join the pre-sale.');
-      return;
-    }
-
-    setIsJoiningPresale(true);
-    setPresaleStatus(null);
-
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[];
-      if (!accounts || accounts.length === 0) {
-        setPresaleStatus('No accounts found. Please connect your wallet.');
-        setIsJoiningPresale(false);
-        return;
-      }
-
-      const provider = new BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-
-      const tx = await signer.sendTransaction({
-        to: PRESALE_ADDRESS,
-        value: parseEther(PRESALE_AMOUNT),
-      });
-
-      setPresaleStatus(`Transaction sent! Hash: ${tx.hash}`);
-      await tx.wait();
-      setPresaleStatus('Transaction confirmed! Welcome to the pre-sale.');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setPresaleStatus(`Transaction failed: ${errorMessage}`);
-    } finally {
-      setIsJoiningPresale(false);
-    }
-  };
-
-  const handleWaitlistSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!email) return;
-    
-    setIsSubmitting(true);
-    setWaitlistMessage(null);
-    // TODO: Replace with actual API call to waitlist service
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setEmail('');
-      setWaitlistMessage('Thank you for joining the waitlist!');
-    }, 1000);
-  };
-
-  const fadeInUp = {
-    initial: { opacity: 0, y: 30 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
-  };
-
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const ecosystemFeatures = [
-    {
-      icon: <FaGraduationCap className="w-6 h-6 text-white" />,
-      title: 'Teaching',
-      status: 'IN DEVELOPMENT',
-      statusColor: 'bg-green-100 text-green-700',
-      description: 'Your AI Professor learns your style, remembers your struggles, and adapts lessons just for you. Like having a world-class mentor available 24/7.',
-      bullets: ['Personalized learning paths', 'Progress memory retention', 'Adapts to your pace'],
-      iconBg: 'bg-green-500',
-      cardBg: 'bg-green-50',
-      illustration: (
-        <div className="relative h-48 flex items-center justify-center">
-          {/* Spline placeholder - AI Professor Teaching */}
-          <div className="spline-placeholder w-full h-full rounded-xl bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center overflow-hidden">
-            <motion.div 
-              className="flex items-center gap-4"
-              animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              <div className="w-20 h-20 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <div className="w-10 h-10 bg-white rounded-lg" />
-              </div>
-              <div className="w-14 h-14 bg-green-200 rounded-xl flex items-center justify-center">
-                <FaUsers className="w-6 h-6 text-green-600" />
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      )
-    },
-    {
-      icon: <FaCheckCircle className="w-6 h-6 text-white" />,
-      title: 'Qualifying',
-      status: 'PLANNED',
-      statusColor: 'bg-gray-100 text-gray-600',
-      description: 'Validate your skills through comprehensive assessments. Your AI Professor ensures you truly master concepts before moving forward.',
-      bullets: ['Skill verification system', 'Progress certifications', 'Mastery tracking'],
-      iconBg: 'bg-amber-500',
-      cardBg: 'bg-amber-50',
-      illustration: (
-        <div className="relative h-48 flex items-center justify-center">
-          {/* Spline placeholder - Qualifying System */}
-          <div className="spline-placeholder w-full h-full rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center overflow-hidden">
-            <motion.div 
-              className="flex flex-col items-center gap-2"
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
-                <FaStar className="w-8 h-8 text-white" />
-              </div>
-              <div className="flex gap-2 mt-2">
-                <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center">
-                  <FaCheck className="w-4 h-4 text-white" />
-                </div>
-                <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center">
-                  <FaCheck className="w-4 h-4 text-white" />
-                </div>
-                <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center">
-                  <FaCheck className="w-4 h-4 text-white" />
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      )
-    },
-    {
-      icon: <FaComments className="w-6 h-6 text-white" />,
-      title: 'Communicating',
-      status: 'PLANNED',
-      statusColor: 'bg-gray-100 text-gray-600',
-      description: 'Your AI Professor cares about you. It celebrates your victories, understands your struggles, and provides emotional support throughout your journey.',
-      bullets: ['Emotional intelligence', 'Motivational support', 'Always available'],
-      iconBg: 'bg-pink-500',
-      cardBg: 'bg-pink-50',
-      illustration: (
-        <div className="relative h-48 flex items-center justify-center">
-          {/* Spline placeholder - Communication */}
-          <div className="spline-placeholder w-full h-full rounded-xl bg-gradient-to-br from-pink-100 to-pink-50 flex items-center justify-center overflow-hidden">
-            <motion.div className="flex flex-col items-center gap-3">
-              <div className="w-20 h-20 bg-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <FaComments className="w-10 h-10 text-white" />
-              </div>
-              <motion.div 
-                className="flex gap-2"
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                <div className="px-3 py-1 bg-white rounded-full text-sm text-pink-600 shadow-sm border border-pink-200">You got this!</div>
-              </motion.div>
-              <motion.div 
-                className="flex gap-2"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
-              >
-                <div className="px-3 py-1 bg-white rounded-full text-sm text-pink-600 shadow-sm border border-pink-200">Let me help</div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      )
-    },
-    {
-      icon: <FaDatabase className="w-6 h-6 text-white" />,
-      title: 'Obsidian Base',
-      status: 'IN DEVELOPMENT',
-      statusColor: 'bg-green-100 text-green-700',
-      description: 'Triple knowledge base system: personal vault, AI Professor shared space, and project documentation. All powered by Obsidian for connected thinking.',
-      bullets: ['Personal knowledge vault', 'Professor shared notes', 'Project documentation'],
-      iconBg: 'bg-gray-700',
-      cardBg: 'bg-gray-100',
-      illustration: (
-        <div className="relative h-48 flex items-center justify-center">
-          {/* Spline placeholder - Obsidian Base */}
-          <div className="spline-placeholder w-full h-full rounded-xl bg-gradient-to-br from-gray-200 to-gray-100 flex items-center justify-center overflow-hidden">
-            <motion.div 
-              className="relative"
-              animate={{ rotate: [0, 5, 0, -5, 0] }}
-              transition={{ duration: 6, repeat: Infinity }}
-            >
-              <div className="w-24 h-24 bg-gray-700 rounded-2xl flex items-center justify-center shadow-xl">
-                <FaDatabase className="w-12 h-12 text-white" />
-              </div>
-              <motion.div 
-                className="absolute -top-4 -right-4 w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <motion.div 
-                className="absolute -bottom-4 -left-4 w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-              />
-              <motion.div 
-                className="absolute -bottom-4 -right-4 w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-              />
-            </motion.div>
-          </div>
-        </div>
-      )
-    },
-  ];
-
-  const infrastructureFeatures = [
-    {
-      icon: <FaGithub className="w-8 h-8 text-red-500" />,
-      title: 'Private Repositories',
-      description: 'Host unlimited private Git repositories with full version control',
-    },
-    {
-      icon: <FaProjectDiagram className="w-8 h-8 text-green-500" />,
-      title: 'Project Management',
-      description: 'Integrated issue tracking, boards, and workflow automation',
-    },
-    {
-      icon: <FaUsers className="w-8 h-8 text-blue-500" />,
-      title: 'Team Collaboration',
-      description: 'Code review, pull requests, and team communication tools',
-    },
-  ];
-
-  const pricingPlans = [
-    {
-      name: 'Free Tier',
-      price: '$0',
-      period: 'forever',
-      description: 'Start learning with your AI Professor',
-      features: ['Basic AI Professor access', 'Git Server & Obsidian', 'Community support', 'Limited memory'],
-      buttonText: 'Start Free',
-      buttonStyle: 'border-2 border-gray-200 text-gray-700 hover:bg-gray-50',
-      available: 'AVAILABLE NOW',
-      availableColor: 'text-green-600',
-      highlight: false
-    },
-    {
-      name: 'Beginner Developer',
-      price: '$8',
-      originalPrice: '$15/month',
-      discount: '47% OFF',
-      period: '/month',
-      description: 'Perfect for aspiring developers',
-      features: ['Full AI Professor access', 'All 3 Obsidian bases', '2GB server resources', 'Spark CLI access', 'Priority support'],
-      buttonText: 'Pre-Order Now',
-      buttonStyle: 'bg-green-600 text-white hover:bg-green-700',
-      available: 'PRE-SALE ONLY',
-      availableColor: 'text-green-600',
-      highlight: true,
-      popular: true
-    },
-    {
-      name: 'Professional',
-      price: '$25',
-      period: '/month',
-      description: 'For serious developers',
-      features: ['Everything in Beginner', 'Advanced AI capabilities', '10GB server resources', 'Custom domains', 'Team collaboration'],
-      buttonText: 'Pre-Order',
-      buttonStyle: 'border-2 border-gray-200 text-gray-700 hover:bg-gray-50',
-      available: 'COMING SOON',
-      availableColor: 'text-amber-600',
-      highlight: false
-    },
-    {
-      name: 'Enterprise',
-      price: 'Grant',
-      period: '',
-      description: 'For validated developers and companies',
-      features: ['Professor-validated work', 'Unlimited resources', 'Company hiring access', 'Professor negotiation', 'Funding opportunities'],
-      buttonText: 'Learn More',
-      buttonStyle: 'border-2 border-gray-200 text-gray-700 hover:bg-gray-50',
-      available: 'VALIDATION REQUIRED',
-      availableColor: 'text-blue-600',
-      highlight: false
-    },
-  ];
-
-  const faqs = [
-    {
-      question: 'When will Netbit launch?',
-      answer: "We're currently in active development. Teaching module is being built now, with Obsidian knowledge base already complete. Join the waitlist to get notified when we launch early access."
-    },
-    {
-      question: 'What makes this different?',
-      answer: 'Your AI Professor has memory and emotions - it remembers your progress, adapts to your learning style, and genuinely cares about your success. Plus you get complete development infrastructure.'
-    },
-    {
-      question: 'How does Enterprise hiring work?',
-      answer: 'Companies must go through your AI Professor first - it evaluates opportunities, protects your interests, and negotiates terms on your behalf based on your career goals.'
-    },
-    {
-      question: 'What can I deploy with Spark?',
-      answer: 'Spark is perfect for deploying to multiple ARM devices like Raspberry Pi and Orange Pi. Share packages from your PC - great for IoT projects, edge computing, or managing device farms.'
-    },
-    {
-      question: 'Is Free tier really free forever?',
-      answer: 'Yes! Free tier includes basic AI Professor access, Git server, Obsidian knowledge base, and community support - completely free, no time limit. Upgrade anytime for more resources.'
-    },
-    {
-      question: 'What are pre-sale benefits?',
-      answer: "Pre-sale pricing locks in lifetime discounts - like $8/month instead of $15/month (47% off). Early access to new features and priority support. These prices won't be available after launch."
-    },
-  ];
-
-  const footerLinks = {
-    platform: [
-      { name: 'AI Professor', badge: 'SOON' },
-      { name: 'Obsidian Base', badge: 'SOON' },
-      { name: 'Git Server', badge: 'SOON' },
-      { name: 'Spark CLI', badge: 'SOON' },
-    ],
-    company: [
-      { name: 'About Veloro', badge: 'SOON' },
-      { name: 'Enterprise', badge: 'SOON' },
-      { name: 'Roadmap', badge: 'SOON' },
-    ],
-    resources: [
-      { name: 'Documentation', badge: 'SOON' },
-      { name: 'Community', badge: 'SOON' },
-      { name: 'Support', badge: 'SOON' },
-    ],
-  };
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -992,3 +732,4 @@ function App() {
 }
 
 export default App;
+

@@ -1,8 +1,8 @@
 //! Утилиты для работы с Git
 
-use std::process::Command;
+use log::{debug, error};
 use std::path::Path;
-use log::{error, debug};
+use std::process::Command;
 
 // ============================================================================
 // СТРУКТУРЫ ДАННЫХ
@@ -33,7 +33,7 @@ pub struct GitCommandResult {
 /// Создает новый bare Git репозиторий
 pub fn create_bare_repository(repo_path: &str) -> Result<(), String> {
     debug!("Creating bare repository at: {}", repo_path);
-    
+
     let output = Command::new("git")
         .args(&["init", "--bare", repo_path])
         .output()
@@ -52,9 +52,14 @@ pub fn create_bare_repository(repo_path: &str) -> Result<(), String> {
 /// Получает список веток репозитория
 pub fn get_repository_branches(repo_path: &str) -> Result<Vec<String>, String> {
     debug!("Getting branches for repository: {}", repo_path);
-    
+
     let output = Command::new("git")
-        .args(&["--git-dir", repo_path, "branch", "--format=%(refname:short)"])
+        .args(&[
+            "--git-dir",
+            repo_path,
+            "branch",
+            "--format=%(refname:short)",
+        ])
         .output()
         .map_err(|e| format!("Failed to execute git command: {}", e))?;
 
@@ -65,7 +70,7 @@ pub fn get_repository_branches(repo_path: &str) -> Result<Vec<String>, String> {
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect();
-        
+
         debug!("Found {} branches", branches.len());
         Ok(branches)
     } else {
@@ -77,8 +82,11 @@ pub fn get_repository_branches(repo_path: &str) -> Result<Vec<String>, String> {
 
 /// Получает список файлов в определенной ветке
 pub fn get_repository_files(repo_path: &str, branch: &str) -> Result<Vec<GitFile>, String> {
-    debug!("Getting files for repository: {} branch: {}", repo_path, branch);
-    
+    debug!(
+        "Getting files for repository: {} branch: {}",
+        repo_path, branch
+    );
+
     let output = Command::new("git")
         .args(&["--git-dir", repo_path, "ls-tree", "-l", branch])
         .output()
@@ -87,7 +95,7 @@ pub fn get_repository_files(repo_path: &str, branch: &str) -> Result<Vec<GitFile
     if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let files = parse_git_ls_tree_output(&stdout);
-        
+
         debug!("Found {} files", files.len());
         Ok(files)
     } else {
@@ -99,8 +107,7 @@ pub fn get_repository_files(repo_path: &str, branch: &str) -> Result<Vec<GitFile
 
 /// Проверяет существование репозитория
 pub fn repository_exists(repo_path: &str) -> bool {
-    Path::new(repo_path).exists() && 
-    Path::new(&format!("{}/HEAD", repo_path)).exists()
+    Path::new(repo_path).exists() && Path::new(&format!("{}/HEAD", repo_path)).exists()
 }
 
 /// Получает информацию о репозитории
@@ -117,7 +124,7 @@ pub fn get_repository_info(repo_path: &str) -> Result<GitRepoInfo, String> {
         .to_string();
 
     let branches = get_repository_branches(repo_path).unwrap_or_default();
-    
+
     let is_bare = is_bare_repository(repo_path);
 
     Ok(GitRepoInfo {
@@ -140,39 +147,39 @@ pub fn is_bare_repository(repo_path: &str) -> bool {
             return stdout.trim() == "true";
         }
     }
-    
+
     false
 }
 
 /// Выполняет произвольную Git команду
 pub fn execute_git_command(args: &[&str], working_dir: Option<&str>) -> GitCommandResult {
     debug!("Executing git command: {:?}", args);
-    
+
     let mut command = Command::new("git");
     command.args(args);
-    
+
     if let Some(dir) = working_dir {
         command.current_dir(dir);
     }
-    
+
     match command.output() {
         Ok(output) => {
             let stdout = String::from_utf8_lossy(&output.stdout).to_string();
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
             let success = output.status.success();
             let exit_code = output.status.code();
-            
+
             if !success {
                 error!("Git command failed: {:?}, stderr: {}", args, stderr);
             }
-            
+
             GitCommandResult {
                 success,
                 stdout,
                 stderr,
                 exit_code,
             }
-        },
+        }
         Err(e) => {
             error!("Failed to execute git command: {}", e);
             GitCommandResult {
@@ -209,13 +216,13 @@ fn parse_git_ls_tree_output(output: &str) -> Vec<GitFile> {
             let hash = parts.next()?.to_string();
             let size_str = parts.next()?;
             let name = parts.collect::<Vec<&str>>().join(" ");
-            
+
             let size = if file_type == "blob" {
                 size_str.parse().ok()
             } else {
                 None
             };
-            
+
             Some(GitFile {
                 name,
                 file_type,
@@ -237,11 +244,8 @@ pub fn check_git_availability() -> bool {
 
 /// Получает версию Git
 pub fn get_git_version() -> Option<String> {
-    let output = Command::new("git")
-        .arg("--version")
-        .output()
-        .ok()?;
-    
+    let output = Command::new("git").arg("--version").output().ok()?;
+
     if output.status.success() {
         let version = String::from_utf8_lossy(&output.stdout);
         Some(version.trim().to_string())
