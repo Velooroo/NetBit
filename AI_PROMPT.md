@@ -571,7 +571,7 @@ For each interactive component, design:
 - **Glassmorphism**: For modals, tooltips, overlays
 - **Dark Mode Excellence**: Rich, deep backgrounds with high contrast elements
 - **Micro-interactions**: Delightful feedback on every action
-- ** 3D Accents**: Strategic use of 3D elements without overwhelming
+- **3D Accents**: Strategic use of 3D elements without overwhelming
 - **Smooth Transitions**: Page and state transitions feel seamless
 
 ---
