@@ -5,6 +5,7 @@ NetBit - это современная платформа, объединяющ�
 ## 🎨 AI Design Resources
 
 Для создания дизайна с помощью AI-инструментов (Figma AI, Spline3D):
+- **[DESIGN_GUIDE.md](./DESIGN_GUIDE.md)** - Quick start guide and usage examples
 - **[AI_PROMPT.md](./AI_PROMPT.md)** - Comprehensive design prompt in English
 - **[AI_PROMPT_RU.md](./AI_PROMPT_RU.md)** - Полный промпт для дизайна на русском
 
